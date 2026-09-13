@@ -28,9 +28,10 @@ The dashboard's headline number per plan is `price_min` — the lowest advertise
 
 ## Setup (once)
 
-1. Push this folder to a GitHub repo (public, so Pages is free). The push itself triggers a deploy-only run: the workflow turns on GitHub Pages for the repo (`actions/configure-pages` with `enablement: true`) and publishes the dashboard from whatever is in `data/`.
-2. **Actions → “Scrape rents & deploy dashboard” → Run workflow** to take the first snapshot. The log should say `Feed: 30 available units across 15 plans`, then `21 plans, 15 listed, 30 units`, then a green deploy.
-3. The dashboard is at `https://<you>.github.io/<repo>/`. It updates itself every morning. (Pushes to `main` only rebuild and redeploy the page; they don't re-scrape.)
+1. Push this folder to a GitHub repo (public, so Pages is free). The push triggers a deploy-only run, which will fail at the Pages step until step 2 is done — that's expected.
+2. Turn on Pages with the Actions source: **Settings → Pages → Build and deployment → Source: GitHub Actions**, or from a terminal `gh api -X POST repos/<you>/<repo>/pages -f build_type=workflow`. (The workflow's own token can't do this for you.)
+3. **Actions → “Scrape rents & deploy dashboard” → Run workflow** to take the first snapshot. The log should say `Feed: 30 available units across 15 plans`, then `21 plans, 15 listed, 30 units`, then a green deploy.
+4. The dashboard is at `https://<you>.github.io/<repo>/`. It updates itself every morning. (Pushes to `main` only rebuild and redeploy the page; they don't re-scrape.)
 
 Each run is ~1 minute of Actions time. The workflow needs no secrets.
 

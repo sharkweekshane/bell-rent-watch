@@ -69,10 +69,10 @@ jobs:
       - name: Build the dashboard
         run: python build_site.py
 
-      - name: Enable Pages (no-op once it is on)
+      - name: Configure Pages
+        # Pages must already be enabled with Source = GitHub Actions (see README); the
+        # workflow token cannot create the site itself.
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3

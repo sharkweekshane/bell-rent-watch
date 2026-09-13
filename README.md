@@ -3,13 +3,14 @@
 A daily record of the floor-plan rents at [bellwestford.com/floor-plans](https://www.bellwestford.com/floor-plans/), and a live dashboard of how they move. No servers: a GitHub Actions cron fetches the community's availability feed every morning, commits the day's CSVs back to this repo, and rebuilds the dashboard on GitHub Pages.
 
 ```
-GitHub Actions (cron, 13:23 UTC = 9:23am EDT / 8:23am EST)
+GitHub Actions (cron, 9:05am and 7:05pm EDT = 13:05 / 23:05 UTC)
   └─ scrape.py ── GET ──▶ RentCafe availability feed (JSON, one record per available unit)
         │                  + the floor-plans page, for the list of all 21 plans
         ▼
   data/prices.csv · data/units.csv · data/raw/<date>.json    (committed by the workflow)
         ▼
   build_site.py ──▶ site/index.html ──▶ GitHub Pages
+  email_report.py ──▶ Gmail SMTP ──▶ your inbox (2-bedroom report, optional SMS)
 ```
 
 ## Where the prices come from
@@ -31,7 +32,20 @@ The dashboard's headline number per plan is `price_min` — the lowest advertise
 1. Push this folder to a GitHub repo (public, so Pages is free). The push triggers a deploy-only run, which will fail at the Pages step until step 2 is done — that's expected.
 2. Turn on Pages with the Actions source: **Settings → Pages → Build and deployment → Source: GitHub Actions**, or from a terminal `gh api -X POST repos/<you>/<repo>/pages -f build_type=workflow`. (The workflow's own token can't do this for you.)
 3. **Actions → “Scrape rents & deploy dashboard” → Run workflow** to take the first snapshot. The log should say `Feed: 30 available units across 15 plans`, then `21 plans, 15 listed, 30 units`, then a green deploy.
-4. The dashboard is at `https://<you>.github.io/<repo>/`. It updates itself every morning. (Pushes to `main` only rebuild and redeploy the page; they don't re-scrape.)
+4. The dashboard is at `https://<you>.github.io/<repo>/`. It updates itself at 9:05am and 7:05pm Eastern. (Pushes to `main` only rebuild and redeploy the page; they don't re-scrape.)
+
+## Email (and text) updates
+
+After every scheduled scrape the workflow runs `email_report.py`, which emails the current 2-bedroom units (cheapest first, with what changed since the last check) — but only once these repository secrets exist (**Settings → Secrets and variables → Actions → New repository secret**):
+
+| secret | value |
+|---|---|
+| `MAIL_USERNAME` | the Gmail address to send from, e.g. `you@gmail.com` |
+| `MAIL_PASSWORD` | a Gmail **App Password** for that account: Google Account → Security → 2-Step Verification → App passwords → create one named “rent watch”. It's a 16-character code; your real password never goes anywhere. |
+| `MAIL_TO` | where to send it (comma-separate several addresses) |
+| `SMS_TO` | optional: your carrier's email-to-SMS address, which gets a one-line summary — Verizon `number@vtext.com`, AT&T `number@txt.att.net`, T-Mobile `number@tmomail.net` |
+
+To report on a different bedroom count, add a repository *variable* `REPORT_BEDS` (0 = studio, 1, 2, 3). Until the secrets exist the step just prints the report in the run log and publishes it at `<site>/report.html`.
 
 Each run is ~1 minute of Actions time. The workflow needs no secrets.
 
@@ -50,7 +64,7 @@ For a preview with history before the real one accumulates, `.venv/bin/python te
 
 ## Data
 
-`data/prices.csv` — one row per floor plan per day (all 21 plans, listed or not). Re-running on the same date replaces every row for that date in both CSVs (so a unit that left the feed between two same-day runs is dropped, not kept).
+`data/prices.csv` — one row per floor plan per day (all 21 plans, listed or not). The 7pm run replaces the 9am rows for that date in both CSVs (a unit that left the feed between the two is dropped, not kept); the raw feed from both runs is kept.
 
 | column | meaning |
 |---|---|
@@ -66,7 +80,7 @@ For a preview with history before the real one accumulates, `.venv/bin/python te
 
 `data/units.csv` — one row per available unit per day: `unit` (e.g. `5120`), `apartment_id`, `floorplan_id`, `beds`, `baths`, `sqft`, `floor` (parsed from the amenities), `rent_min`, `rent_max`, `deposit`, `available_date`, `made_ready_date`, `status` (`Vacant Unrented Ready`, `Notice Unrented`, …), `amenities` (`; `-separated), `specials`, `apply_url`.
 
-`data/raw/<date>.json` — the feed as fetched, under a `feed` key, wrapped with `date`, `scraped_at`, `feed_url` and the response's `Last-Modified`; any new field can be back-filled from it later. `data/plans.json` — the last good plan catalog parsed from the page, used if the page can't be read.
+`data/raw/<date>_<HHMM>Z.json` — one file per run (the day's CSV rows are replaced by the later run, but every raw feed is kept): the feed as fetched, under a `feed` key, wrapped with `date`, `scraped_at`, `feed_url` and the response's `Last-Modified`; any new field can be back-filled from it later. `data/plans.json` — the last good plan catalog parsed from the page, used if the page can't be read.
 
 ## When it breaks
 

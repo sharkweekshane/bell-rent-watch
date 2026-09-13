@@ -18,7 +18,7 @@ What the page shows is exactly what we record:
 Outputs (re-running on the same date replaces that date's rows):
   data/prices.csv        one row per floor plan per day (all plans, listed or not)
   data/units.csv         one row per available unit per day
-  data/raw/<date>.json   the feed as fetched (under a `feed` key, with date/scraped_at/feed_url)
+  data/raw/<date>_<HHMM>Z.json  the feed as fetched, one file per run (under a `feed` key)
   data/plans.json        the plan catalog parsed from the page (fallback if it changes)
 
 Usage:
@@ -524,7 +524,7 @@ def main(argv=None) -> int:
     log.info("Wrote %s (%d rows total, %d for %s)", data_dir / "units.csv", n, len(unit_rows), today)
     if fresh_catalog:
         save_catalog(cache, catalog)
-    raw_path = data_dir / "raw" / f"{today}.json"
+    raw_path = data_dir / "raw" / f"{today}_{now_utc.strftime('%H%M')}Z.json"   # one file per run, never overwritten
     raw_path.parent.mkdir(parents=True, exist_ok=True)
     raw_path.write_text(json.dumps({"date": today, "scraped_at": scraped_at, "feed_url": FEED_URL,
                                     "feed_last_modified": feed_last_modified, "feed": feed_obj},

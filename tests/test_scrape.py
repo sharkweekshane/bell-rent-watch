@@ -187,7 +187,7 @@ def test_main_offline_writes_everything(tmp_path):
     assert rc == 0
     assert (tmp_path / "prices.csv").exists() and (tmp_path / "units.csv").exists()
     assert (tmp_path / "plans.json").exists()
-    raw = json.loads((tmp_path / "raw" / "2026-09-13.json").read_text())
+    raw = json.loads(next((tmp_path / "raw").glob("2026-09-13_*Z.json")).read_text())
     assert raw["date"] == "2026-09-13" and raw["feed"]["floorplans"] and raw["feed_url"] == scrape.FEED_URL
     assert len((tmp_path / "units.csv").read_text().splitlines()) == 31
 

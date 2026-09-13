@@ -2,10 +2,11 @@ name: Scrape rents & deploy dashboard
 
 on:
   schedule:
-    # 13:23 UTC = 9:23am EDT / 8:23am EST. RentCafe's revenue-management prices roll
-    # overnight, so one morning check captures the day. Off the top of the hour because
-    # GitHub delays :00 crons the most. GitHub cron is UTC and ignores DST.
-    - cron: "23 13 * * *"
+    # Twice a day: 13:05 UTC = 9:05am EDT (8:05am EST) and 23:05 UTC = 7:05pm EDT
+    # (6:05pm EST). GitHub cron is UTC and ignores DST; a few minutes past the hour
+    # because :00 crons get delayed the most. Each run re-snapshots the day (the row
+    # for the date is replaced; the raw feed is kept per run) and emails the report.
+    - cron: "5 13,23 * * *"
   workflow_dispatch: {}        # "Run workflow" button in the Actions tab
   push:
     branches: [main]           # code pushes redeploy the dashboard from the committed data (no re-scrape)
@@ -68,6 +69,16 @@ jobs:
 
       - name: Build the dashboard
         run: python build_site.py
+
+      - name: Email the report (skipped until the MAIL_* secrets exist — see README)
+        if: github.event_name != 'push'
+        env:
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          SMS_TO: ${{ secrets.SMS_TO }}
+          REPORT_BEDS: ${{ vars.REPORT_BEDS }}
+        run: python email_report.py
 
       - name: Configure Pages
         # Pages must already be enabled with Source = GitHub Actions (see README); the

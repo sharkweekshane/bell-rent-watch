@@ -1,0 +1,233 @@
+[
+ {
+  "slug": "denver-1",
+  "name": "Denver 1",
+  "beds": 0,
+  "baths": 1.0,
+  "sqft": 532,
+  "bldg": "1",
+  "feedmap": "Denver 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/denver-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-A-229x480.png"
+ },
+ {
+  "slug": "denver-2",
+  "name": "Denver 2",
+  "beds": 0,
+  "baths": 1.0,
+  "sqft": 535,
+  "bldg": "2",
+  "feedmap": "Denver 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/denver-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-A-229x480.png"
+ },
+ {
+  "slug": "eaton-1",
+  "name": "Eaton 1",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 687,
+  "bldg": "1",
+  "feedmap": "Eaton 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/eaton-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-B-480x411.png"
+ },
+ {
+  "slug": "eaton-2",
+  "name": "Eaton 2",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 683,
+  "bldg": "2",
+  "feedmap": "Eaton 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/eaton-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-B-480x411.png"
+ },
+ {
+  "slug": "edgewater-1",
+  "name": "Edgewater 1",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 725,
+  "bldg": "1",
+  "feedmap": "Edgewater 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/edgewater-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-C-323x480.png"
+ },
+ {
+  "slug": "edgewater-2",
+  "name": "Edgewater 2",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 725,
+  "bldg": "2",
+  "feedmap": "Edgewater 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/edgewater-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-C-323x480.png"
+ },
+ {
+  "slug": "evergreen-1",
+  "name": "Evergreen 1",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 789,
+  "bldg": "1",
+  "feedmap": "Evergreen 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/evergreen-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-D-354x480.png"
+ },
+ {
+  "slug": "evergreen-2",
+  "name": "Evergreen 2",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 789,
+  "bldg": "2",
+  "feedmap": "Evergreen 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/evergreen-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-D-354x480.png"
+ },
+ {
+  "slug": "evans-1",
+  "name": "Evans 1",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 852,
+  "bldg": "1",
+  "feedmap": "Evans 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/evans-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-E-387x480.png"
+ },
+ {
+  "slug": "evans-2",
+  "name": "Evans 2",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 874,
+  "bldg": "2",
+  "feedmap": "Evans 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/evans-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-E-387x480.png"
+ },
+ {
+  "slug": "erie-1",
+  "name": "Erie 1",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 907,
+  "bldg": "1",
+  "feedmap": "Erie 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/erie-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-F-480x412.png"
+ },
+ {
+  "slug": "erie-2",
+  "name": "Erie 2",
+  "beds": 1,
+  "baths": 1.0,
+  "sqft": 914,
+  "bldg": "2",
+  "feedmap": "Erie 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/erie-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-F-480x412.png"
+ },
+ {
+  "slug": "ames-1",
+  "name": "Ames 1",
+  "beds": 2,
+  "baths": 2.0,
+  "sqft": 1188,
+  "bldg": "1",
+  "feedmap": "Ames 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/ames-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-G-480x403.png"
+ },
+ {
+  "slug": "ames-2",
+  "name": "Ames 2",
+  "beds": 2,
+  "baths": 2.0,
+  "sqft": 1227,
+  "bldg": "2",
+  "feedmap": "Ames 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/ames-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-G-480x403.png"
+ },
+ {
+  "slug": "aspen-1",
+  "name": "Aspen 1",
+  "beds": 2,
+  "baths": 2.0,
+  "sqft": 1234,
+  "bldg": "1",
+  "feedmap": "Aspen 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/aspen-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-H-444x480.png"
+ },
+ {
+  "slug": "aspen-2",
+  "name": "Aspen 2",
+  "beds": 2,
+  "baths": 2.0,
+  "sqft": 1237,
+  "bldg": "2",
+  "feedmap": "Aspen 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/aspen-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-H-444x480.png"
+ },
+ {
+  "slug": "avon-1",
+  "name": "Avon 1",
+  "beds": 2,
+  "baths": 2.0,
+  "sqft": 1304,
+  "bldg": "1",
+  "feedmap": "Avon 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/avon-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-I-447x480.png"
+ },
+ {
+  "slug": "avon-2",
+  "name": "Avon 2",
+  "beds": 2,
+  "baths": 2.0,
+  "sqft": 1292,
+  "bldg": "2",
+  "feedmap": "Avon 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/avon-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-I-447x480.png"
+ },
+ {
+  "slug": "breckenridge-1",
+  "name": "Breckenridge 1",
+  "beds": 3,
+  "baths": 2.0,
+  "sqft": 1472,
+  "bldg": "1",
+  "feedmap": "Breckenridge 1",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/breckenridge-1/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-J-480x443.png"
+ },
+ {
+  "slug": "breckenridge-2",
+  "name": "Breckenridge 2",
+  "beds": 3,
+  "baths": 2.0,
+  "sqft": 1503,
+  "bldg": "2",
+  "feedmap": "Breckenridge 2",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/breckenridge-2/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-J-480x443.png"
+ },
+ {
+  "slug": "townhome",
+  "name": "Townhome",
+  "beds": 3,
+  "baths": 2.0,
+  "sqft": 1932,
+  "bldg": "2",
+  "feedmap": "Townhome",
+  "url": "https://www.bellwestford.com/floorplans-m5-pt/townhome/",
+  "image": "https://www.bellwestford.com/wp-content/uploads/sites/81/2021/01/WH-TH-365x480.png"
+ }
+]

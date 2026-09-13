@@ -1,0 +1,76 @@
+name: Scrape rents & deploy dashboard
+
+on:
+  schedule:
+    # 13:23 UTC = 9:23am EDT / 8:23am EST. RentCafe's revenue-management prices roll
+    # overnight, so one morning check captures the day. Off the top of the hour because
+    # GitHub delays :00 crons the most. GitHub cron is UTC and ignores DST.
+    - cron: "23 13 * * *"
+  workflow_dispatch: {}        # "Run workflow" button in the Actions tab
+  push:
+    branches: [main]           # redeploy the dashboard on every code push (no re-scrape needed, but harmless)
+
+permissions:
+  contents: write              # commit the day's CSVs back to the repo
+  pages: write                 # deploy to GitHub Pages
+  id-token: write
+
+# One run at a time, and a newer run always supersedes an older one.
+# cancel-in-progress MUST stay true (lesson from the Sandlot dashboard): every run is
+# idempotent (re-scraping a day replaces that day's rows; the site is rebuilt from
+# scratch), so losing an in-flight run costs nothing, whereas a run stuck in `waiting`
+# would otherwise hold the group forever and silently freeze the site.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  scrape-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # full history so `git pull --rebase` below always works
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Tests (parsers, CSV merge, dashboard derivations)
+        run: python -m pytest -q
+
+      - name: Scrape today's feed
+        run: python scrape.py
+
+      - name: Commit the data
+        run: |
+          git config user.name "rent-watch-bot"
+          git config user.email "rent-watch-bot@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "No data changes to commit"
+          else
+            git commit -m "data: $(date -u +%Y-%m-%d)"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push
+          fi
+
+      - name: Build the dashboard
+        run: python build_site.py
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

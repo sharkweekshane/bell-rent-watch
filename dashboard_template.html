@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Bell Westford rent watch</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 16 16 5l12 11v13H4z' fill='%231E7A4C'/%3E%3Cpath d='M9 22h4v-6H9zm10 0h4v-6h-4z' fill='%23F2F5F3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F2F5F3; --card: #FAFBFA; --ink: #17231E; --muted: #5B6A63; --faint: #8A9790;
+    --rule: #CFD8D3; --rule-soft: #E2E8E4; --chip: #E4EAE6; --chip-on: #17231E; --chip-on-ink: #F2F5F3;
+    --up: #B23B2A; --down: #1E7A4C; --warn-bg: #FBF1D6; --warn-ink: #5A4300; --spot-bg: #E8EEEA;
+    --c0: #2a78d6; --c1: #eb6834; --c2: #1baf7a; --c3: #4a3aa7; --cx: #898781;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141917; --card: #1B211E; --ink: #E6ECE8; --muted: #A3B0A9; --faint: #6E7B74;
+      --rule: #2E3733; --rule-soft: #242C28; --chip: #242C28; --chip-on: #E6ECE8; --chip-on-ink: #141917;
+      --up: #E07A6A; --down: #5BBF86; --warn-bg: #3A3110; --warn-ink: #F1DFA0; --spot-bg: #232B27;
+      --c0: #3987e5; --c1: #d95926; --c2: #199e70; --c3: #9085e9; --cx: #898781;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); color: var(--ink); }
+  body { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 48px; }
+  a { color: inherit; }
+  header h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(34px, 6vw, 52px); line-height: 1.02; letter-spacing: -0.01em; margin: 0 0 10px; max-width: 14ch; }
+  header p { margin: 0; max-width: 66ch; color: var(--muted); }
+  header p strong { color: var(--ink); font-weight: 500; }
+  .notice { margin: 14px 0 0; padding: 10px 14px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-ink); font-size: 14px; max-width: 66ch; }
+
+  section { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--rule); }
+  section h2 { font-family: var(--serif); font-weight: 500; font-size: 26px; line-height: 1.1; margin: 0 0 6px; }
+  section h3 { font-weight: 500; font-size: 15px; margin: 26px 0 6px; }
+  .lede { margin: 0 0 14px; color: var(--muted); max-width: 66ch; }
+
+  /* KPI tiles */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 22px; }
+  .tile { background: var(--card); border: 1px solid var(--rule-soft); border-radius: 10px; padding: 12px 14px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .tile .l { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+  .tile .l .k { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .tile .v { font-size: 28px; font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; }
+  .tile .v.none { font-size: 18px; font-weight: 500; color: var(--muted); }
+  .tile .d { font-size: 13px; color: var(--muted); }
+  .tile .spark { margin-top: 6px; }
+  .spark .sp { fill: none; stroke: var(--faint); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+
+  /* filter row */
+  .filters { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin: 30px 0 0; }
+  .filters .fl { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-right: 2px; }
+  .chips { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chips button { font: inherit; font-size: 13px; font-weight: 500; border: 0; border-radius: 999px; padding: 5px 13px; background: var(--chip); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+  .chips button .k { width: 9px; height: 9px; border-radius: 3px; }
+  .chips button[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+  .chips button:focus-visible, .legend button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* charts */
+  .chart { position: relative; width: 100%; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .grid { stroke: var(--rule-soft); stroke-width: 1; }
+  .axl { stroke: var(--rule); stroke-width: 1; }
+  .ax { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+  .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; transition: opacity .12s; }
+  .ln.ctx { stroke-width: 1.5; opacity: .55; }
+  .ln.hot { stroke-width: 3; opacity: 1; }
+  .ln.dim, .mk.dim, .lbl.dim { opacity: .18; }
+  .mk { stroke: var(--paper); stroke-width: 2; }
+  .lbl { font-size: 11.5px; fill: var(--ink); }
+  .lead { stroke-width: 1; opacity: .8; }
+  .cross { stroke: var(--faint); stroke-width: 1; pointer-events: none; }
+  .bar { transition: opacity .12s; }
+  .bar.dim { opacity: .35; }
+  .tip { position: absolute; z-index: 5; pointer-events: none; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 7px 10px 8px; font-size: 12px; line-height: 1.45; box-shadow: 0 6px 20px rgba(0,0,0,.10); min-width: 150px; max-width: 280px; }
+  .tip .th { color: var(--muted); margin-bottom: 3px; }
+  .tip .r { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .tip .k { width: 14px; height: 2px; border-radius: 1px; flex: none; }
+  .tip .v { font-weight: 600; font-variant-numeric: tabular-nums; min-width: 48px; }
+  .tip .n { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+  .tip .more { color: var(--muted); margin-top: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 0 0 6px; }
+  .legend button { font: inherit; font-size: 12.5px; background: none; border: 1px solid transparent; border-radius: 999px; padding: 2px 9px 2px 7px; color: var(--ink); display: inline-flex; gap: 7px; align-items: center; cursor: pointer; }
+  .legend button .k { width: 14px; height: 2px; border-radius: 1px; }
+  .legend button[aria-pressed="true"] { border-color: var(--ink); background: var(--spot-bg); }
+  .legend button.dim { opacity: .4; }
+  .legend .hint { font-size: 12px; color: var(--faint); align-self: center; margin-left: 4px; }
+  .legend .lg { font-size: 12.5px; display: inline-flex; gap: 7px; align-items: center; padding: 2px 9px 2px 2px; }
+  .legend .lg .k { width: 14px; height: 2px; border-radius: 1px; }
+  .empty { padding: 26px 0; color: var(--muted); max-width: 62ch; }
+  .caption { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+
+  /* tables */
+  .only-m { display: none; }
+  .tscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 10px 8px 0; text-align: right; border-bottom: 1px solid var(--rule-soft); white-space: nowrap; vertical-align: top; }
+  th { font-weight: 500; color: var(--muted); font-size: 13px; }
+  th:first-child, td:first-child { text-align: left; padding-left: 0; }
+  td:first-child { font-weight: 500; }
+  th.srt { cursor: pointer; user-select: none; }
+  th.srt:hover { color: var(--ink); }
+  th.srt[aria-sort="ascending"]::after { content: " ↑"; }
+  th.srt[aria-sort="descending"]::after { content: " ↓"; }
+  tr.group td { color: var(--muted); font-weight: 400; padding-top: 18px; border-bottom: 0; }
+  tr.pick { cursor: pointer; }
+  tr.pick:hover td { background: var(--spot-bg); }
+  tr.spot td { background: var(--spot-bg); }
+  tr.unlisted td { color: var(--muted); font-weight: 400; }
+  td .sub { display: none; color: var(--muted); font-weight: 400; font-size: 13px; white-space: normal; }
+  td .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 8px; }
+  .up { color: var(--up); } .down { color: var(--down); } .flat, .na { color: var(--muted); }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; max-width: 320px; white-space: normal; justify-content: flex-end; }
+  .tag { font-size: 11.5px; color: var(--muted); background: var(--chip); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  footer { margin-top: 44px; color: var(--muted); font-size: 13px; max-width: 72ch; line-height: 1.55; }
+
+  @media (max-width: 640px) {
+    main { padding: 22px 14px 40px; }
+    .hide-m { display: none; }
+    .only-m { display: inline; }
+    td .sub { display: block; }
+    th, td { padding-right: 8px; font-size: 14px; }
+    .tscroll table th:first-child, .tscroll table td:first-child { position: sticky; left: 0; background: var(--paper); z-index: 1; }
+    .tile .v { font-size: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Bell Westford rent watch</h1>
+    <p id="status">Loading…</p>
+    <div id="stale" class="notice" hidden></div>
+  </header>
+
+  <div class="tiles" id="tiles" aria-label="Today at a glance"></div>
+
+  <div class="filters" role="group" aria-label="Filters">
+    <div><span class="fl">Plans</span> <span class="chips" id="beds-chips"></span></div>
+    <div><span class="fl">Range</span> <span class="chips" id="range-chips"></span></div>
+  </div>
+
+  <section id="prices">
+    <h2>Asking rent by floor plan</h2>
+    <p class="lede">The lowest advertised rent among each plan's available units, checked every morning. Hover a day to read every plan; click a plan (here or in the table) to spotlight it.</p>
+    <div class="legend" id="plan-legend"></div>
+    <div class="chart" id="price-chart"></div>
+    <p class="caption" id="price-caption"></p>
+  </section>
+
+  <section id="changes">
+    <h2>What moved</h2>
+    <p class="lede">Each plan's lowest rent today against the previous check, a week ago and a month ago. Plans showing “call for pricing” on the site have nothing available.</p>
+    <div class="tscroll" id="plan-table"></div>
+  </section>
+
+  <section id="units">
+    <h2>On the market</h2>
+    <p class="lede">Every unit currently advertised, how long it has been listed, and how its price has moved since it first appeared. Click a column to sort; click a unit to spotlight its price path below.</p>
+    <div class="tscroll" id="unit-table"></div>
+    <h3 id="unit-chart-title">Unit price paths</h3>
+    <div class="legend" id="unit-legend"></div>
+    <div class="chart" id="unit-chart"></div>
+    <p class="caption" id="unit-caption"></p>
+  </section>
+
+  <section id="availability">
+    <h2>Units listed over time</h2>
+    <p class="lede">How many units were advertised each day, by bedroom count.</p>
+    <div class="legend" id="avail-legend"></div>
+    <div class="chart" id="avail-chart"></div>
+    <details><summary>Table view</summary><div class="tscroll" id="avail-table"></div></details>
+  </section>
+
+  <section id="gone" hidden>
+    <h2>Leased or delisted</h2>
+    <p class="lede">Units that were advertised and then disappeared from the feed — usually because they leased. Their last asking rent and how long they were listed.</p>
+    <div class="tscroll" id="gone-table"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</main>
+<noscript><p style="padding:20px">This dashboard needs JavaScript to draw its charts. The raw data is in <a href="data/prices.csv">data/prices.csv</a> and <a href="data/units.csv">data/units.csv</a>.</p></noscript>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  'use strict';
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const $ = s => document.querySelector(s);
+  const DAY = 86400000;
+  const pd = s => new Date(s + 'T00:00:00Z');
+  const iso = t => new Date(t).toISOString().slice(0, 10);
+  const addDays = (s, n) => iso(pd(s).getTime() + n * DAY);
+  const dayDiff = (a, b) => Math.round((pd(b) - pd(a)) / DAY);
+  const money = n => n == null ? '–' : '$' + Math.round(n).toLocaleString('en-US');
+  const signed = n => n == null ? '–' : n === 0 ? '0' : (n > 0 ? '+' : '−') + '$' + Math.abs(Math.round(n)).toLocaleString('en-US');
+  const dcls = n => n == null ? 'na' : n === 0 ? 'flat' : n > 0 ? 'up' : 'down';
+  const fmtDate = (s, o) => s ? pd(s).toLocaleDateString('en-US', Object.assign({ month: 'short', day: 'numeric', timeZone: 'UTC' }, o || {})) : '–';
+  const fmtDateY = s => fmtDate(s, { year: 'numeric' });
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const bedsLabel = b => b == null ? 'Other' : b === 0 ? 'Studio' : b + ' bed';
+  const gkey = b => (b === 0 || b === 1 || b === 2 || b === 3) ? String(b) : 'x';
+  const GROUPS = [{ key: '0', label: 'Studio', beds: 0 }, { key: '1', label: '1 bed', beds: 1 }, { key: '2', label: '2 bed', beds: 2 }, { key: '3', label: '3 bed', beds: 3 }, { key: 'x', label: 'Other', beds: null }];
+  const gcolor = g => `var(--c${g})`;
+  // Within a bedroom group, plans take stepped shades of the group hue (stable index k from the build,
+  // so filtering never repaints a survivor). Past six, a dash pattern is the secondary encoding.
+  const SHADES = [c => c, c => `color-mix(in oklab, ${c} 66%, var(--ink))`, c => `color-mix(in oklab, ${c} 66%, var(--paper))`, c => `color-mix(in oklab, ${c} 48%, var(--ink))`, c => `color-mix(in oklab, ${c} 50%, var(--paper))`, c => `color-mix(in oklab, ${c} 34%, var(--ink))`];
+  const planColor = p => SHADES[p.k % SHADES.length](gcolor(gkey(p.beds)));
+  const planDash = p => p.k >= SHADES.length ? '6 4' : null;
+
+  const el = (tag, attrs, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null) continue; if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else if (k === 'html') n.innerHTML = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); } for (const k of kids) if (k != null) n.append(k); return n; };
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs, ...kids) => { const n = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null) continue; if (k === 'text') n.textContent = v; else n.setAttribute(k, v); } for (const k of kids) if (k != null) n.append(k); return n; };
+
+  // ---------- scales ----------
+  function niceTicks(lo, hi, n, integer) {
+    if (!(hi > lo)) hi = lo + (integer ? 1 : Math.max(1, Math.abs(lo) * 0.05));
+    const raw = (hi - lo) / Math.max(1, n);
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    let step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw) || mag * 10;
+    if (integer) step = Math.max(1, Math.round(step));
+    const a = Math.floor(lo / step) * step, b = Math.ceil(hi / step) * step;
+    const ticks = []; for (let v = a; v <= b + step * 1e-6; v += step) ticks.push(+v.toFixed(6));
+    return { lo: a, hi: b, ticks, step };
+  }
+  function dateTicks(x0, x1, w) {
+    const span = dayDiff(x0, x1), maxTicks = Math.max(2, Math.floor(w / 78));
+    if (span <= 0) return [{ d: x1, label: fmtDate(x1) }];
+    const daily = [1, 2, 3, 7, 14].find(s => span / s + 1 <= maxTicks);
+    const out = [];
+    if (daily) {
+      for (let t = x1; t >= x0; t = addDays(t, -daily)) out.push({ d: t, label: fmtDate(t) });
+      return out.reverse();
+    }
+    // monthly: first-of-month ticks, thinned to fit
+    const firsts = [];
+    let y = +x0.slice(0, 4), m = +x0.slice(5, 7);
+    for (let i = 0; i < 400; i++) {
+      const t = `${y}-${String(m).padStart(2, '0')}-01`;
+      if (t > x1) break;
+      if (t >= x0) firsts.push(t);
+      m++; if (m > 12) { m = 1; y++; }
+    }
+    const every = Math.max(1, Math.ceil(firsts.length / maxTicks));
+    return firsts.filter((_, i) => i % every === 0).map(t => ({ d: t, label: t.slice(5, 7) === '01' || t === firsts[0] ? fmtDate(t, { month: 'short', year: 'numeric', day: undefined }) : fmtDate(t, { month: 'short', day: undefined }) }));
+  }
+
+  // ---------- line chart ----------
+  // cfg: { series:[{id,name,color,dash,cls,pts:[[iso,value|null]]}], x0, x1, yFmt, labelEnds, spot, onSpot, height, integer, zero, maxRows, empty }
+  function lineChart(root, cfg) {
+    root.replaceChildren();
+    const W = Math.max(320, root.clientWidth || 800), H = cfg.height || 380;
+    const inRange = p => p[0] >= cfg.x0 && p[0] <= cfg.x1;
+    const series = cfg.series.map(s => Object.assign({}, s, { pts: s.pts.filter(inRange) })).filter(s => s.pts.some(p => p[1] != null));
+    if (!series.length) { root.append(el('div', { class: 'empty', text: cfg.empty || 'Nothing to plot for this selection.' })); return; }
+    const labelEnds = cfg.labelEnds && series.length <= 8;
+    const m = { t: 14, r: labelEnds ? Math.min(180, Math.round(W * 0.27)) : 22, b: 34, l: 54 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const single = dayDiff(cfg.x0, cfg.x1) < 1;
+    const dx0 = single ? addDays(cfg.x0, -1) : cfg.x0, dx1 = single ? addDays(cfg.x1, 1) : cfg.x1;
+    const spanMs = pd(dx1) - pd(dx0);
+    const X = s => m.l + (pd(s) - pd(dx0)) / spanMs * iw;
+    const vals = series.flatMap(s => s.pts.map(p => p[1]).filter(v => v != null));
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const pad = Math.max((hi - lo) * 0.12, cfg.minPad == null ? 40 : cfg.minPad);
+    const nt = niceTicks(cfg.zero ? 0 : lo - pad, hi + pad, cfg.ticks || 8, cfg.integer);
+    const Y = v => m.t + (nt.hi - v) / (nt.hi - nt.lo) * ih;
+    const yf = cfg.yFmt || (v => v);
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': cfg.aria || 'chart' });
+    for (const t of nt.ticks) {
+      svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t), class: 'grid' }));
+      svg.append(sv('text', { x: m.l - 8, y: Y(t) + 4, class: 'ax', 'text-anchor': 'end', text: yf(t) }));
+    }
+    svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, class: 'axl' }));
+    for (const t of dateTicks(cfg.x0, cfg.x1, iw)) {
+      svg.append(sv('line', { x1: X(t.d), x2: X(t.d), y1: H - m.b, y2: H - m.b + 4, class: 'axl' }));
+      svg.append(sv('text', { x: X(t.d), y: H - m.b + 17, class: 'ax', 'text-anchor': 'middle', text: t.label }));
+    }
+    const g = sv('g'); svg.append(g);
+    const totalPts = series.reduce((a, s) => a + s.pts.length, 0);
+    const spotted = cfg.spot != null;
+    for (const s of series) {
+      const dim = spotted && cfg.spot !== s.id, hot = spotted && cfg.spot === s.id;
+      let d = '', pen = false, prev = null;
+      const pts = s.pts.filter(p => p[1] != null);
+      const isolated = [];
+      for (let i = 0; i < s.pts.length; i++) {
+        const p = s.pts[i];
+        if (p[1] == null) { pen = false; continue; }
+        d += (pen ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1);
+        const nextHas = s.pts[i + 1] && s.pts[i + 1][1] != null;
+        if (!pen && !nextHas) isolated.push(p);
+        pen = true;
+      }
+      g.append(sv('path', { d, class: 'ln' + (s.cls ? ' ' + s.cls : '') + (dim ? ' dim' : '') + (hot ? ' hot' : ''), style: `stroke:${s.color}`, 'stroke-dasharray': s.dash }));
+      const last = pts[pts.length - 1];
+      const showAll = totalPts <= 60;
+      const marks = showAll ? pts : [...isolated, last];
+      for (const p of marks) g.append(sv('circle', { cx: X(p[0]).toFixed(1), cy: Y(p[1]).toFixed(1), r: p === last ? 4 : 3, class: 'mk' + (dim ? ' dim' : ''), style: `fill:${s.color}` }));
+      s._last = last;
+    }
+    if (labelEnds) {
+      const items = series.map(s => ({ s, y: Y(s._last[1]), x: X(s._last[0]) })).sort((a, b) => a.y - b.y);
+      const gap = 14; let floor = m.t + 5;
+      for (const it of items) { it.ly = Math.max(it.y, floor); floor = it.ly + gap; }
+      const over = items[items.length - 1].ly - (H - m.b - 4);
+      if (over > 0) { for (const it of items) it.ly -= over; }
+      for (const it of items) {
+        const dim = spotted && cfg.spot !== it.s.id;
+        if (Math.abs(it.ly - it.y) > 3) g.append(sv('line', { x1: it.x + 5, y1: it.y, x2: it.x + 13, y2: it.ly, class: 'lead' + (dim ? ' dim' : ''), style: `stroke:${it.s.color}` }));
+        g.append(sv('text', { x: it.x + 16, y: it.ly + 4, class: 'lbl' + (dim ? ' dim' : ''), text: `${yf(it.s._last[1])} ${it.s.name}` }));
+      }
+    }
+    // hover: crosshair snaps to the nearest observed date; one tooltip lists every series
+    const tip = el('div', { class: 'tip' }); tip.style.display = 'none';
+    const cross = sv('line', { class: 'cross', y1: m.t, y2: H - m.b }); cross.style.display = 'none';
+    svg.append(cross);
+    const hit = sv('rect', { x: m.l, y: m.t, width: iw, height: ih, fill: 'transparent' });
+    svg.append(hit);
+    const dates = [...new Set(series.flatMap(s => s.pts.filter(p => p[1] != null).map(p => p[0])))].sort();
+    const maxRows = cfg.maxRows || 24;
+    const move = ev => {
+      const r = svg.getBoundingClientRect(); const px = (ev.clientX - r.left) * (W / r.width);
+      let best = null, bd = Infinity;
+      for (const dt of dates) { const dx = Math.abs(X(dt) - px); if (dx < bd) { bd = dx; best = dt; } }
+      if (best == null) return;
+      cross.setAttribute('x1', X(best)); cross.setAttribute('x2', X(best)); cross.style.display = '';
+      const rows = series.map(s => ({ s, v: (s.pts.find(p => p[0] === best) || [])[1] })).filter(x => x.v != null).sort((a, b) => b.v - a.v);
+      tip.replaceChildren(el('div', { class: 'th', text: fmtDateY(best) }),
+        ...rows.slice(0, maxRows).map(x => el('div', { class: 'r' }, el('span', { class: 'k', style: `background:${x.s.color}` }), el('span', { class: 'v', text: yf(x.v) }), el('span', { class: 'n', text: x.s.name }))),
+        ...(rows.length > maxRows ? [el('div', { class: 'more', text: `+${rows.length - maxRows} more — see the table` })] : []));
+      tip.style.display = '';
+      const tx = X(best) / W * r.width;
+      const left = tx + 14 + tip.offsetWidth > r.width ? Math.max(0, tx - tip.offsetWidth - 14) : tx + 14;
+      tip.style.left = left + 'px';
+      tip.style.top = Math.min(Math.max(4, ev.clientY - r.top - 24), Math.max(4, r.height - tip.offsetHeight - 4)) + 'px';
+    };
+    hit.addEventListener('pointermove', move);
+    hit.addEventListener('pointerdown', move);
+    hit.addEventListener('pointerleave', () => { tip.style.display = 'none'; cross.style.display = 'none'; });
+    root.append(svg, tip);
+  }
+
+  // ---------- stacked bar chart ----------
+  // cfg: { dates:[iso], groups:[{key,label,color,values:[n]}], x0, x1, height }
+  function barChart(root, cfg) {
+    root.replaceChildren();
+    const W = Math.max(320, root.clientWidth || 800), H = cfg.height || 250;
+    const m = { t: 12, r: 16, b: 34, l: 40 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const idx = cfg.dates.map((d, i) => i).filter(i => cfg.dates[i] >= cfg.x0 && cfg.dates[i] <= cfg.x1);
+    if (!idx.length) { root.append(el('div', { class: 'empty', text: 'Nothing to plot for this selection.' })); return; }
+    const totals = idx.map(i => cfg.groups.reduce((a, gr) => a + (gr.values[i] || 0), 0));
+    const nt = niceTicks(0, Math.max(1, ...totals), 4, true);
+    const Y = v => m.t + (nt.hi - v) / (nt.hi - nt.lo) * ih;
+    const nDays = dayDiff(cfg.x0, cfg.x1) + 1;
+    const slot = iw / nDays;
+    const bw = Math.max(2, Math.min(24, slot - 2));
+    const X = d => m.l + dayDiff(cfg.x0, d) * slot + slot / 2;
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': 'Units listed per day' });
+    for (const t of nt.ticks) {
+      svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t), class: 'grid' }));
+      svg.append(sv('text', { x: m.l - 8, y: Y(t) + 4, class: 'ax', 'text-anchor': 'end', text: t }));
+    }
+    for (const t of dateTicks(cfg.x0, cfg.x1, iw)) {
+      svg.append(sv('line', { x1: X(t.d), x2: X(t.d), y1: H - m.b, y2: H - m.b + 4, class: 'axl' }));
+      svg.append(sv('text', { x: X(t.d), y: H - m.b + 17, class: 'ax', 'text-anchor': 'middle', text: t.label }));
+    }
+    svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, class: 'axl' }));
+    const g = sv('g'); svg.append(g);
+    const cols = new Map();
+    idx.forEach((i, j) => {
+      const d = cfg.dates[i]; const x = X(d) - bw / 2; let cum = 0; const segs = [];
+      const present = cfg.groups.filter(gr => gr.values[i] > 0);
+      present.forEach((gr, k) => {
+        const v = gr.values[i]; const top = Y(cum + v), bot = Y(cum); const isTop = k === present.length - 1;
+        const y0 = isTop ? top : top + 1, y1 = cum === 0 ? bot : bot - 1;   // 2px surface gap between segments
+        const h = Math.max(0.5, y1 - y0); const r = isTop ? Math.min(4, bw / 2, h / 2) : 0;
+        const dpath = r ? `M${x} ${y1}V${y0 + r}Q${x} ${y0} ${x + r} ${y0}H${x + bw - r}Q${x + bw} ${y0} ${x + bw} ${y0 + r}V${y1}Z` : `M${x} ${y0}H${x + bw}V${y1}H${x}Z`;
+        const seg = sv('path', { d: dpath, class: 'bar', style: `fill:${gr.color}` });
+        g.append(seg); segs.push(seg); cum += v;
+      });
+      cols.set(d, { segs, total: totals[j], i });
+    });
+    const tip = el('div', { class: 'tip' }); tip.style.display = 'none';
+    let hot = null;
+    const hitG = sv('g'); svg.append(hitG);
+    for (const [d, c] of cols) {
+      const hit = sv('rect', { x: X(d) - slot / 2, y: m.t, width: Math.max(slot, 6), height: ih, fill: 'transparent' });
+      const show = ev => {
+        if (hot && hot !== c) hot.segs.forEach(s => s.classList.remove('hot'));
+        hot = c; for (const [, o] of cols) o.segs.forEach(s => s.classList.toggle('dim', o !== c));
+        const rows = cfg.groups.filter(gr => gr.values[c.i] > 0).map(gr => el('div', { class: 'r' }, el('span', { class: 'k', style: `background:${gr.color};height:8px;width:8px;border-radius:2px` }), el('span', { class: 'v', text: String(gr.values[c.i]) }), el('span', { class: 'n', text: gr.label })));
+        tip.replaceChildren(el('div', { class: 'th', text: fmtDateY(d) }), ...rows, el('div', { class: 'r' }, el('span', { class: 'k' }), el('span', { class: 'v', text: String(c.total) }), el('span', { class: 'n', text: 'total' })));
+        tip.style.display = '';
+        const r = svg.getBoundingClientRect(); const tx = X(d) / W * r.width;
+        tip.style.left = (tx + 14 + tip.offsetWidth > r.width ? Math.max(0, tx - tip.offsetWidth - 14) : tx + 14) + 'px';
+        tip.style.top = Math.min(Math.max(4, ev.clientY - r.top - 24), Math.max(4, r.height - tip.offsetHeight - 4)) + 'px';
+      };
+      hit.addEventListener('pointermove', show); hit.addEventListener('pointerdown', show);
+      hitG.append(hit);
+    }
+    hitG.addEventListener('pointerleave', () => { tip.style.display = 'none'; for (const [, o] of cols) o.segs.forEach(s => s.classList.remove('dim')); hot = null; });
+    root.append(svg, tip);
+  }
+
+  function sparkline(vals, color) {
+    const W = 110, H = 30; const v = vals.filter(x => x != null); if (!v.length) return null;
+    const lo = Math.min(...v), hi = Math.max(...v); const span = hi - lo || 1;
+    const X = i => 3 + i / Math.max(1, vals.length - 1) * (W - 6), Y = x => 4 + (hi - x) / span * (H - 8);
+    let d = '', pen = false;
+    vals.forEach((x, i) => { if (x == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(x).toFixed(1); pen = true; });
+    let li = vals.length - 1; while (li >= 0 && vals[li] == null) li--;
+    return sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: 'spark', 'aria-hidden': 'true' }, sv('path', { d, class: 'sp' }), li >= 0 ? sv('circle', { cx: X(li), cy: Y(vals[li]), r: 3, style: `fill:${color}` }) : null);
+  }
+
+  // ---------- state & data ----------
+  const plans = DATA.plans, units = DATA.units, daily = DATA.daily;
+  const latest = DATA.latest, first = DATA.first;
+  const dailyAt = target => { let best = null; for (const r of daily) { if (r.date > target) break; best = r; } return best; };
+  const state = { beds: 'all', range: 'all', spot: null, spotUnit: null, unitSort: { key: 'price', dir: 1 } };
+  const rangeStart = () => state.range === 'all' ? first : (addDays(latest, -state.range) > first ? addDays(latest, -state.range) : first);
+  const inBeds = b => state.beds === 'all' || gkey(b) === state.beds;
+
+  if (!latest) {
+    $('#status').textContent = 'No snapshots yet. Run the “Scrape rents & deploy dashboard” workflow from the repository’s Actions tab, or run python scrape.py locally and push data/.';
+    for (const id of ['prices', 'changes', 'units', 'availability']) $('#' + id).hidden = true;
+    return;
+  }
+
+  // ---------- header ----------
+  const listedUnits = units.filter(u => u.listed).length;
+  const listedPlans = plans.filter(p => p.listed).length;
+  $('#status').replaceChildren(
+    'The lowest advertised rent for every floor plan at Bell Westford, read each morning from the community’s own availability feed. Last check ',
+    el('strong', { text: fmtDateY(latest) }), `: ${plural(listedUnits, 'unit')} listed across ${listedPlans} of ${plans.length} floor plans. Tracking since ${fmtDateY(first)}${DATA.n_days > 1 ? ` (${plural(DATA.n_days, 'daily check')})` : ''}.`);
+  const now = new Date(); const todayIso = iso(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const age = dayDiff(latest, todayIso);
+  if (age >= 2) { $('#stale').textContent = `The last successful check was ${plural(age, 'day')} ago. The scraper may be failing — look at the repository’s Actions tab.`; $('#stale').hidden = false; }
+
+  // ---------- KPI tiles ----------
+  const tiles = $('#tiles');
+  const last30 = daily.filter(r => r.date > addDays(latest, -30));
+  const weekAgo = dailyAt(addDays(latest, -7));
+  const today = daily[daily.length - 1];
+  const tile = (label, swatch, value, valueNone, deltaText, deltaCls, sparkVals, sparkColor) => {
+    const t = el('div', { class: 'tile' },
+      el('div', { class: 'l' }, swatch ? el('span', { class: 'k', style: `background:${swatch}` }) : null, label),
+      value != null ? el('div', { class: 'v', text: value }) : el('div', { class: 'v none', text: valueNone }),
+      el('div', { class: 'd' + (deltaCls ? ' ' + deltaCls : ''), text: deltaText }));
+    const sp = sparkline(sparkVals, sparkColor || 'var(--ink)'); if (sp && sparkVals.filter(x => x != null).length > 1) t.append(sp);
+    tiles.append(t);
+  };
+  for (const gr of GROUPS) {
+    if (!plans.some(p => gkey(p.beds) === gr.key)) continue;
+    const cur = today.cheapest[gr.key], n = today.counts[gr.key] || 0;
+    const ref = weekAgo && weekAgo.date !== latest ? weekAgo.cheapest[gr.key] : undefined;
+    const dlt = cur != null && ref != null ? cur - ref : null;
+    tile(`Cheapest ${gr.label.toLowerCase()}`, gcolor(gr.key), cur != null ? money(cur) : null, 'None listed',
+      cur == null ? (n ? `${plural(n, 'unit')}, no price` : 'Nothing available') : (dlt == null ? `${plural(n, 'unit')} listed` : `${signed(dlt)} vs a week ago · ${plural(n, 'unit')}`), dlt == null ? '' : dcls(dlt),
+      last30.map(r => r.cheapest[gr.key] == null ? null : r.cheapest[gr.key]), gcolor(gr.key));
+  }
+  {
+    const cur = today.total, ref = weekAgo && weekAgo.date !== latest ? weekAgo.total : null;
+    tile('Units listed', null, String(cur), '', ref == null ? `across ${listedPlans} plans` : `${cur === ref ? 'no change' : (cur > ref ? '+' : '−') + Math.abs(cur - ref)} vs a week ago · ${listedPlans} plans`, '', last30.map(r => r.total), 'var(--ink)');
+  }
+
+  // ---------- filters ----------
+  const chip = (parent, label, key, pressed, onclick, swatch) => {
+    const b = el('button', { type: 'button', 'aria-pressed': String(pressed), 'data-key': key, onclick }, swatch ? el('span', { class: 'k', style: `background:${swatch}` }) : null, label);
+    parent.append(b); return b;
+  };
+  const bedsChips = $('#beds-chips'), rangeChips = $('#range-chips');
+  const setPressed = (parent, key) => { for (const b of parent.children) b.setAttribute('aria-pressed', String(b.dataset.key === key)); };
+  chip(bedsChips, 'All', 'all', true, () => { state.beds = 'all'; setPressed(bedsChips, 'all'); render(); });
+  for (const gr of GROUPS) if (plans.some(p => gkey(p.beds) === gr.key)) chip(bedsChips, gr.label, gr.key, false, () => { state.beds = gr.key; setPressed(bedsChips, gr.key); render(); }, gcolor(gr.key));
+  const spanDays = dayDiff(first, latest);
+  for (const [label, key] of [['All', 'all'], ['90 days', 90], ['30 days', 30], ['7 days', 7]]) {
+    if (key !== 'all' && spanDays < key) continue;      // a range longer than the history is just "All"
+    chip(rangeChips, label, String(key), key === 'all', () => { state.range = key; setPressed(rangeChips, String(key)); render(); });
+  }
+  if (rangeChips.children.length === 1) rangeChips.parentElement.hidden = true;
+
+  // ---------- render ----------
+  const setSpot = slug => { state.spot = state.spot === slug ? null : slug; render(); };
+  const setSpotUnit = id => { state.spotUnit = state.spotUnit === id ? null : id; renderUnitChart(); renderUnitTable(); };
+
+  function renderPriceChart() {
+    const x0 = rangeStart();
+    const visible = plans.filter(p => inBeds(p.beds) && p.series.some(s => s[1] != null && s[0] >= x0));
+    const legend = $('#plan-legend'); legend.replaceChildren();
+    for (const p of visible) {
+      const b = el('button', { type: 'button', 'aria-pressed': String(state.spot === p.slug), class: state.spot && state.spot !== p.slug ? 'dim' : '', onclick: () => setSpot(p.slug) },
+        el('span', { class: 'k', style: `background:${p.k >= SHADES.length ? `repeating-linear-gradient(90deg, ${planColor(p)} 0 5px, transparent 5px 8px)` : planColor(p)}` }), p.name);
+      legend.append(b);
+    }
+    if (visible.length) legend.append(el('span', { class: 'hint', text: state.spot ? 'click again to clear' : 'click to spotlight' }));
+    lineChart($('#price-chart'), {
+      series: visible.map(p => ({ id: p.slug, name: p.name, color: planColor(p), dash: planDash(p), pts: p.series.map(s => [s[0], s[1]]) })),
+      x0, x1: latest, yFmt: money, labelEnds: state.beds !== 'all' || visible.length <= 8, spot: state.spot, height: window.innerWidth < 640 ? 320 : 400, minPad: 60,
+      aria: 'Lowest asking rent per floor plan over time', empty: 'No plan in this group has had a listed price yet.',
+    });
+    const priced = visible.length, unpriced = plans.filter(p => inBeds(p.beds)).length - priced;
+    $('#price-caption').textContent = state.beds === 'all'
+      ? `Blue lines are studios, orange one-beds, green two-beds, violet three-beds; within a group, darker and lighter shades are different plans. ${unpriced ? `${plural(unpriced, 'plan')} with no availability ${unpriced === 1 ? 'has' : 'have'} no line.` : ''}`
+      : `${plural(priced, 'plan')} with a listed price${unpriced ? `; ${unpriced} showing “call for pricing”` : ''}. Labels at the right are the latest value.`;
+  }
+
+  function renderPlanTable() {
+    const rows = plans.filter(p => inBeds(p.beds));
+    const table = el('table', {}, el('thead', {}, el('tr', {},
+      el('th', { text: 'Plan' }), el('th', { class: 'hide-m', text: 'Layout' }), el('th', { text: 'Rent' }),
+      el('th', { html: '<span class="hide-m">Since last check</span><span class="only-m">1 day</span>' }), el('th', { text: '7 days' }), el('th', { class: 'hide-m', text: '30 days' }),
+      el('th', { text: 'Units' }), el('th', { class: 'hide-m', text: 'Earliest move-in' }))));
+    const tb = el('tbody'); let lastG;
+    for (const p of rows) {
+      const g = gkey(p.beds);
+      if (g !== lastG) { tb.append(el('tr', { class: 'group' }, el('td', { colspan: '8', text: bedsLabel(p.beds) }))); lastG = g; }
+      const layout = [p.baths != null ? `${p.baths} bath` : null, p.sqft != null ? `${p.sqft.toLocaleString('en-US')} sq ft` : null, p.bldg ? `Bldg ${p.bldg}` : null].filter(Boolean).join(', ');
+      const earliest = p.earliest_available ? (p.earliest_available <= latest ? 'Now' : fmtDate(p.earliest_available)) : '–';
+      const tr = el('tr', { class: (p.listed ? 'pick' : 'unlisted pick') + (state.spot === p.slug ? ' spot' : ''), onclick: () => setSpot(p.slug) },
+        el('td', {}, el('span', { class: 'sw', style: `background:${p.listed ? planColor(p) : 'var(--rule)'}` }), p.name, el('span', { class: 'sub', text: layout })),
+        el('td', { class: 'hide-m', text: layout }),
+        el('td', { class: p.price == null ? 'na' : '', text: p.price != null ? money(p.price) : (p.listed ? 'no price' : 'call for pricing') }),
+        el('td', { class: dcls(p.d1), text: signed(p.d1) }), el('td', { class: dcls(p.d7), text: signed(p.d7) }), el('td', { class: 'hide-m ' + dcls(p.d30), text: signed(p.d30) }),
+        el('td', { class: p.n_units ? '' : 'na', text: p.n_units ? String(p.n_units) : '–' }),
+        el('td', { class: 'hide-m', text: earliest }));
+      tb.append(tr);
+    }
+    table.append(tb);
+    $('#plan-table').replaceChildren(table);
+  }
+
+  const unitId = u => u.slug + '/' + u.unit;
+  const unitName = u => `${u.plan} · ${u.unit}`;
+  const UNIT_COLS = [
+    { key: 'plan', label: 'Plan', cmp: (a, b) => (gkey(a.beds) + a.plan).localeCompare(gkey(b.beds) + b.plan) },
+    { key: 'unit', label: 'Unit' }, { key: 'floor', label: 'Floor', n: true, m: true }, { key: 'sqft', label: 'Sq ft', n: true, m: true },
+    { key: 'price', label: 'Rent', n: true }, { key: 'd_first', label: 'Since listed', n: true }, { key: 'd7', label: '7 days', n: true, m: true },
+    { key: 'days_listed', label: 'Days listed', n: true }, { key: 'available_date', label: 'Available' }, { key: 'amenities', label: 'Amenities', m: true, nosort: true },
+  ];
+  function renderUnitTable() {
+    const rows = units.filter(u => u.listed && inBeds(u.beds));
+    const { key, dir } = state.unitSort; const col = UNIT_COLS.find(c => c.key === key);
+    rows.sort((a, b) => { if (col && col.cmp) return col.cmp(a, b) * dir; const av = a[key], bv = b[key]; if (av == null && bv == null) return 0; if (av == null) return 1; if (bv == null) return -1; return (av < bv ? -1 : av > bv ? 1 : 0) * dir; });
+    const thead = el('thead', {}, el('tr', {}, ...UNIT_COLS.map(c => el('th', { class: (c.nosort ? '' : 'srt') + (c.m ? ' hide-m' : ''), 'aria-sort': key === c.key ? (dir > 0 ? 'ascending' : 'descending') : null, text: c.label, onclick: c.nosort ? null : () => { state.unitSort = { key: c.key, dir: key === c.key ? -dir : (c.n ? 1 : 1) }; renderUnitTable(); } }))));
+    const tb = el('tbody');
+    for (const u of rows) {
+      const id = unitId(u); const p = plans.find(x => x.slug === u.slug);
+      const tags = u.amenities.filter(a => !/\bfloor\b/i.test(a));
+      const tr = el('tr', { class: 'pick' + (state.spotUnit === id ? ' spot' : ''), onclick: () => setSpotUnit(id) },
+        el('td', {}, el('span', { class: 'sw', style: `background:${p ? gcolor(gkey(p.beds)) : 'var(--rule)'}` }), u.plan, el('span', { class: 'sub', text: [u.floor != null ? `Floor ${u.floor}` : null, u.sqft ? `${u.sqft} sq ft` : null].filter(Boolean).join(' · ') })),
+        el('td', { text: u.unit }), el('td', { class: 'hide-m', text: u.floor != null ? String(u.floor) : '–' }), el('td', { class: 'hide-m', text: u.sqft != null ? u.sqft.toLocaleString('en-US') : '–' }),
+        el('td', { class: u.price == null ? 'na' : '', text: money(u.price), title: u.rent_max != null && u.rent_max !== u.price ? `Feed range ${money(u.price)} – ${money(u.rent_max)} (lease-term dependent)` : null }),
+        el('td', { class: dcls(u.d_first), text: signed(u.d_first), title: u.first_price != null ? `Listed at ${money(u.first_price)} on ${fmtDateY(u.first_seen)}` : null }),
+        el('td', { class: 'hide-m ' + dcls(u.d7), text: signed(u.d7) }),
+        el('td', { text: u.days_listed + (u.censored ? '+' : ''), title: u.censored ? `Already listed when tracking began on ${fmtDateY(first)}` : `First seen ${fmtDateY(u.first_seen)}` }),
+        el('td', { text: u.available_date ? (u.available_date <= latest ? 'Now' : fmtDate(u.available_date)) : '–' }),
+        el('td', { class: 'hide-m' }, el('div', { class: 'tags', title: u.amenities.join(', ') }, ...tags.slice(0, 4).map(a => el('span', { class: 'tag', text: a })), tags.length > 4 ? el('span', { class: 'tag', text: `+${tags.length - 4}` }) : null)));
+      tb.append(tr);
+    }
+    const table = el('table', {}, thead, tb);
+    $('#unit-table').replaceChildren(rows.length ? table : el('div', { class: 'empty', text: 'No units listed for this selection.' }));
+  }
+
+  function renderUnitChart() {
+    const x0 = rangeStart();
+    const rows = units.filter(u => u.listed && inBeds(u.beds) && u.series.some(s => s[1] != null && s[0] >= x0));
+    const spotted = state.spotUnit != null && rows.some(u => unitId(u) === state.spotUnit);
+    lineChart($('#unit-chart'), {
+      series: rows.map(u => ({ id: unitId(u), name: unitName(u), color: gcolor(gkey(u.beds)), cls: spotted ? '' : 'ctx', pts: u.series })),
+      x0, x1: latest, yFmt: money, labelEnds: rows.length <= 8 || spotted, spot: spotted ? state.spotUnit : null, height: window.innerWidth < 640 ? 300 : 360, minPad: 60, maxRows: 14,
+      aria: 'Asking rent per listed unit over time', empty: 'No units to plot for this selection.',
+    });
+    const groupsHere = GROUPS.filter(gr => rows.some(u => gkey(u.beds) === gr.key));
+    $('#unit-legend').replaceChildren(...groupsHere.map(gr => el('span', { class: 'lg' }, el('span', { class: 'k', style: `background:${gcolor(gr.key)}` }), `${gr.label} (${rows.filter(u => gkey(u.beds) === gr.key).length})`)));
+    const su = spotted ? rows.find(u => unitId(u) === state.spotUnit) : null;
+    $('#unit-chart-title').textContent = su ? `Unit price path — ${unitName(su)}` : 'Unit price paths';
+    $('#unit-caption').textContent = su
+      ? `${unitName(su)}: listed at ${money(su.first_price)} on ${fmtDateY(su.first_seen)}, now ${money(su.price)}${su.low != null && su.high != null && su.low !== su.high ? ` (ranged ${money(su.low)}–${money(su.high)})` : ''}. Click the row again to clear.`
+      : `One line per unit currently listed, coloured by bedroom count. Click a unit in the table to spotlight it.`;
+  }
+
+  function renderAvailability() {
+    const x0 = rangeStart();
+    const groups = GROUPS.filter(gr => (state.beds === 'all' || gr.key === state.beds) && daily.some(r => r.counts[gr.key]));
+    const legend = $('#avail-legend'); legend.replaceChildren(...groups.map(gr => el('span', { class: 'lg' }, el('span', { class: 'k', style: `background:${gcolor(gr.key)};width:10px;height:10px;border-radius:3px` }), gr.label)));
+    barChart($('#avail-chart'), { dates: daily.map(r => r.date), groups: groups.map(gr => ({ key: gr.key, label: gr.label, color: gcolor(gr.key), values: daily.map(r => r.counts[gr.key] || 0) })), x0, x1: latest, height: window.innerWidth < 640 ? 220 : 250 });
+    const rows = daily.filter(r => r.date >= x0).slice(-60).reverse();
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', { text: 'Date' }), ...groups.map(gr => el('th', { text: gr.label })), el('th', { text: 'Total' }))),
+      el('tbody', {}, ...rows.map(r => el('tr', {}, el('td', { text: fmtDateY(r.date) }), ...groups.map(gr => el('td', { text: String(r.counts[gr.key] || 0) })), el('td', { text: String(groups.reduce((a, gr) => a + (r.counts[gr.key] || 0), 0)) })))));
+    $('#avail-table').replaceChildren(table);
+  }
+
+  function renderGone() {
+    const rows = units.filter(u => !u.listed && inBeds(u.beds)).sort((a, b) => b.last_seen.localeCompare(a.last_seen) || a.plan.localeCompare(b.plan));
+    const sec = $('#gone'); sec.hidden = !rows.length; if (!rows.length) return;
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', { text: 'Plan' }), el('th', { text: 'Unit' }), el('th', { text: 'Last rent' }), el('th', { class: 'hide-m', text: 'Low – high' }), el('th', { text: 'Listed' }), el('th', { text: 'Days listed' }))),
+      el('tbody', {}, ...rows.map(u => el('tr', {},
+        el('td', {}, el('span', { class: 'sw', style: `background:${gcolor(gkey(u.beds))}` }), u.plan, el('span', { class: 'sub', text: `${bedsLabel(u.beds)}${u.sqft ? ` · ${u.sqft} sq ft` : ''}` })),
+        el('td', { text: u.unit }), el('td', { text: money(u.price) }),
+        el('td', { class: 'hide-m', text: u.low != null ? (u.low === u.high ? money(u.low) : `${money(u.low)} – ${money(u.high)}`) : '–' }),
+        el('td', { text: `${fmtDate(u.first_seen)} – ${fmtDate(u.last_seen)}` }),
+        el('td', { text: u.days_listed + (u.censored ? '+' : ''), title: u.censored ? `Already listed when tracking began on ${fmtDateY(first)}` : null })))));
+    $('#gone-table').replaceChildren(table);
+  }
+
+  function render() { renderPriceChart(); renderPlanTable(); renderUnitTable(); renderUnitChart(); renderAvailability(); renderGone(); }
+  render();
+  let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { renderPriceChart(); renderUnitChart(); renderAvailability(); }, 150); });
+
+  // ---------- footer ----------
+  $('#foot').replaceChildren(
+    'Rents are the lowest advertised rent for each unit at the community’s default lease terms, as published in its own RentCafe availability feed (the same numbers bellwestford.com shows once its JavaScript runs); the feed also carries a higher lease-term-dependent figure per unit, kept in the data as rent_max. “Days listed” counts consecutive daily checks. Source: ',
+    el('a', { href: DATA.source.page, text: 'bellwestford.com/floor-plans' }), '. Checked once a day by a GitHub Actions job; the history lives in ',
+    el('a', { href: 'data/prices.csv', text: 'prices.csv' }), ' and ', el('a', { href: 'data/units.csv', text: 'units.csv' }), ' (', el('a', { href: DATA.source.repo, text: 'source' }), `). Page built ${new Date(DATA.generated_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.`);
+})();
+</script>
+</body>
+</html>

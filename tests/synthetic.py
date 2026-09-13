@@ -60,8 +60,9 @@ def write(out: Path, n_days: int = 45) -> None:
     out.mkdir(parents=True, exist_ok=True)
     for name in ("prices.csv", "units.csv"):
         (out / name).unlink(missing_ok=True)
-    scrape.upsert_csv(out / "prices.csv", prices, ("date", "slug"))
-    scrape.upsert_csv(out / "units.csv", units, ("date", "slug", "unit"))
+    dates = {r.date for r in prices}
+    scrape.upsert_csv(out / "prices.csv", prices, scrape.PlanRow, dates)
+    scrape.upsert_csv(out / "units.csv", units, scrape.UnitRow, dates)
 
 
 if __name__ == "__main__":

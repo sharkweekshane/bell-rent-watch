@@ -21,6 +21,8 @@ ROOT = Path(__file__).resolve().parent
 FEED_URL = "https://www.mmccdn.com/mits/rentcafe/bellwestford-rentcafe-feed/feeds/bellwestford-feed.json"
 PAGE_URL = "https://www.bellwestford.com/floor-plans/"
 REPO_URL = "https://github.com/sharkweekshane/bell-rent-watch"
+PRICES_HEADER = "date,scraped_at,plan,slug,beds,baths,sqft,bldg,listed,n_units,price_min,price_max,price_text,earliest_available,url"
+UNITS_HEADER = "date,scraped_at,plan,slug,unit,apartment_id,floorplan_id,beds,baths,sqft,floor,rent_min,rent_max,deposit,available_date,made_ready_date,status,amenities,specials,apply_url"
 
 
 def read_csv(path: Path) -> list[dict]:
@@ -48,15 +50,35 @@ def shift(iso: str, days: int) -> str:
     return (d(iso) + timedelta(days=days)).isoformat()
 
 
-def price_at(obs: list[tuple[str, int | None]], target: str):
-    """Last observation on or before `target` that has a price. obs sorted by date."""
+TOLERANCE_DAYS = 3   # a 7-/30-day comparison must land within this many days of its target
+
+
+def price_at(obs: list[tuple[str, int | None]], target: str, tolerance: int | None = TOLERANCE_DAYS):
+    """Price of the last observation on or before `target` (obs sorted by date), or None.
+
+    With a tolerance, an observation more than `tolerance` days older than the target
+    doesn't count -- after a gap in checks we show "–" rather than a mislabelled delta.
+    """
     best = None
     for dt, p in obs:
         if dt > target:
             break
         if p is not None:
-            best = p
-    return best
+            best = (dt, p)
+    if best is None:
+        return None
+    if tolerance is not None and (d(target) - d(best[0])).days > tolerance:
+        return None
+    return best[1]
+
+
+def prev_price(obs: list[tuple[str, int | None]], latest: str):
+    """Price at the check before `latest`, whenever that was (the 'since last check' delta)."""
+    return price_at([o for o in obs if o[0] < latest], latest, tolerance=None)
+
+
+def delta(price, ref):
+    return (price - ref) if price is not None and ref is not None else None
 
 
 def build_payload(prices: list[dict], units: list[dict], generated_at: str | None = None) -> dict:
@@ -88,9 +110,9 @@ def build_payload(prices: list[dict], units: list[dict], generated_at: str | Non
             "bldg": p["bldg"], "url": p["url"],
             "listed": bool(last and last[2] > 0), "price": price, "price_max": last[1] if last else None,
             "n_units": last[2] if last else 0, "earliest_available": last[3] if last else None,
-            "d1": (price - price_at(po, shift(latest, -1))) if price is not None and price_at(po, shift(latest, -1)) is not None else None,
-            "d7": (price - price_at(po, shift(latest, -7))) if price is not None and price_at(po, shift(latest, -7)) is not None else None,
-            "d30": (price - price_at(po, shift(latest, -30))) if price is not None and price_at(po, shift(latest, -30)) is not None else None,
+            "d1": delta(price, prev_price(po, latest)),
+            "d7": delta(price, price_at(po, shift(latest, -7))),
+            "d30": delta(price, price_at(po, shift(latest, -30))),
             "first_priced": first_priced,
             "series": [[dt, o[0], o[2]] for dt, o in obs],
         })
@@ -120,9 +142,12 @@ def build_payload(prices: list[dict], units: list[dict], generated_at: str | Non
         }
     unit_list = []
     for u in by_unit.values():
-        obs = sorted(u["obs"].items())
-        first_seen, last_seen = obs[0][0], obs[-1][0]
-        priced = [(dt, p) for dt, p in obs if p is not None]
+        seen = sorted(u["obs"].items())
+        first_seen, last_seen = seen[0][0], seen[-1][0]
+        # every observed date between first and last seen; missing ones become None so the chart breaks the line
+        obs = [(dt, u["obs"].get(dt)) for dt in dates if first_seen <= dt <= last_seen]
+        gaps = sum(1 for dt in dates if first_seen <= dt <= last_seen and dt not in u["obs"])
+        priced = [(dt, p) for dt, p in seen if p is not None]
         price = u["obs"].get(last_seen)
         first_price = priced[0][1] if priced else None
         p7 = price_at(obs, shift(last_seen, -7))
@@ -131,10 +156,11 @@ def build_payload(prices: list[dict], units: list[dict], generated_at: str | Non
             "first_seen": first_seen, "last_seen": last_seen,
             "listed": last_seen == latest,
             "censored": first_seen == first,           # was already listed when tracking began
-            "days_listed": (d(last_seen) - d(first_seen)).days + 1,
+            "days_listed": (d(last_seen) - d(first_seen)).days + 1,   # calendar span
+            "n_checks": len(seen), "gaps": gaps,                          # checks it appeared in / dates it was missing
             "price": price, "first_price": first_price,
-            "d_first": (price - first_price) if price is not None and first_price is not None else None,
-            "d7": (price - p7) if price is not None and p7 is not None else None,
+            "d_first": delta(price, first_price),
+            "d7": delta(price, p7),
             "low": min((p for _, p in priced), default=None), "high": max((p for _, p in priced), default=None),
             "series": [[dt, p] for dt, p in obs],
         })
@@ -143,16 +169,14 @@ def build_payload(prices: list[dict], units: list[dict], generated_at: str | Non
     # ---- daily totals ------------------------------------------------------
     daily = [{"date": dt, "counts": {}, "cheapest": {}} for dt in dates]
     idx = {row["date"]: row for row in daily}
-    for r in units:
-        row = idx.get(r.get("date"))
-        if row is None:
-            continue
-        b = num(r.get("beds"))
+    for u in by_unit.values():
+        b = u["meta"]["beds"]
         g = str(b) if b in (0, 1, 2, 3) else "x"
-        row["counts"][g] = row["counts"].get(g, 0) + 1
-        p = num(r.get("rent_min"))
-        if p is not None and (g not in row["cheapest"] or p < row["cheapest"][g]):
-            row["cheapest"][g] = p
+        for dt, p in u["obs"].items():
+            row = idx[dt]
+            row["counts"][g] = row["counts"].get(g, 0) + 1
+            if p is not None and (g not in row["cheapest"] or p < row["cheapest"][g]):
+                row["cheapest"][g] = p
     for row in daily:
         row["total"] = sum(row["counts"].values())
 
@@ -165,7 +189,7 @@ def build_payload(prices: list[dict], units: list[dict], generated_at: str | Non
 
 
 def render(template: str, payload: dict) -> str:
-    blob = json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
+    blob = json.dumps(payload, separators=(",", ":")).replace("<", "\\u003c")
     if "__DATA__" not in template:
         raise SystemExit("dashboard_template.html has no __DATA__ placeholder")
     return template.replace("__DATA__", blob, 1)
@@ -186,11 +210,13 @@ def main(argv=None) -> int:
     (args.out / "data.json").write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
     (args.out / ".nojekyll").write_text("")
     (args.out / "data").mkdir(exist_ok=True)
-    for name in ("prices.csv", "units.csv"):
+    for name, header in (("prices.csv", PRICES_HEADER), ("units.csv", UNITS_HEADER)):
         src = args.data_dir / name
         if src.exists():
             shutil.copy(src, args.out / "data" / name)
-    print(f"site/index.html: {payload['n_days']} day(s), {len(payload['plans'])} plans, "
+        else:
+            (args.out / "data" / name).write_text(header + "\n", encoding="utf-8")
+    print(f"{args.out / 'index.html'}: {payload['n_days']} day(s), {len(payload['plans'])} plans, "
           f"{sum(1 for u in payload['units'] if u['listed'])} units listed on {payload['latest']}")
     return 0
 

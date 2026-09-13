@@ -85,7 +85,7 @@ def test_empty_data():
 def test_render_inlines_json_safely(tmp_path):
     tpl = "<script id=data type=application/json>__DATA__</script>"
     out = build_site.render(tpl, {"x": "</script><b>"})
-    assert "</script><b>" not in out.split("__")[0] and "<\\/script>" in out
+    assert "</script><b>" not in out and "\\u003c/script>" in out
 
 
 def test_main_builds_site(tmp_path):
@@ -97,3 +97,51 @@ def test_main_builds_site(tmp_path):
     html = (out / "index.html").read_text()
     assert "__DATA__" not in html and '"n_days":10' in html
     assert (out / "data.json").exists() and (out / "data" / "prices.csv").exists() and (out / ".nojekyll").exists()
+
+
+# ---- review follow-ups ----------------------------------------------------------
+def test_unit_gap_breaks_the_line_and_counts_checks():
+    p, u = make_history(20)
+    # knock unit 5120 out of two mid-history days
+    u = [r for r in u if not (r.unit == "5120" and r.date in ("2026-09-03", "2026-09-04"))]
+    pay = build_site.build_payload(rows(p), rows(u))
+    x = next(x for x in pay["units"] if x["unit"] == "5120")
+    assert x["gaps"] == 2 and x["n_checks"] == 18 and x["days_listed"] == 20
+    assert [s for s in x["series"] if s[0] in ("2026-09-03", "2026-09-04")] == [["2026-09-03", None], ["2026-09-04", None]]
+    assert len(x["series"]) == 20
+
+
+def test_deltas_after_a_scrape_gap():
+    p, u = make_history(20)
+    # drop every check between Sep 1 and Sep 11: d7 has nothing within tolerance, d1 compares with the last check
+    keep = lambda r: not ("2026-09-01" <= r.date <= "2026-09-11")  # noqa: E731
+    pay = build_site.build_payload(rows([r for r in p if keep(r)]), rows([r for r in u if keep(r)]))
+    x = next(x for x in pay["plans"] if x["slug"] == "denver-2")
+    series = {d: v for d, v, _ in x["series"]}
+    assert x["d7"] is None                                   # target Sep 6 -> last check Aug 31 is 6 days stale
+    assert x["d1"] == x["price"] - series["2026-09-12"]     # "since last check" = the previous check, whenever it was
+    y = build_site.build_payload(rows([r for r in p if keep(r) and r.date != "2026-09-12"]), rows([r for r in u if keep(r) and r.date != "2026-09-12"]))
+    z = next(x for x in y["plans"] if x["slug"] == "denver-2")
+    assert z["d1"] == z["price"] - series["2026-08-31"]     # ...even if that was two weeks ago
+    assert build_site.price_at([("2026-08-31", 100)], "2026-09-02") == 100
+    assert build_site.price_at([("2026-08-31", 100)], "2026-09-04") is None
+
+
+def test_daily_is_deduplicated():
+    p, u = make_history(3)
+    dup = rows(u) + rows(u[:5])          # five duplicate unit rows
+    pay = build_site.build_payload(rows(p), dup)
+    assert pay["daily"][-1]["total"] == sum(1 for r in u if r.date == pay["latest"])
+
+
+def test_render_escapes_every_angle_bracket():
+    out = build_site.render("<script id=data type=application/json>__DATA__</script>", {"x": "<!--<script>"})
+    assert "<!--" not in out and "\\u003c!--\\u003cscript>" in out
+
+
+def test_main_writes_header_only_csvs_when_data_is_missing(tmp_path):
+    out = tmp_path / "site"
+    rc = build_site.main(["--data-dir", str(tmp_path / "nodata"), "--out", str(out), "--template", str(Path(__file__).resolve().parents[1] / "dashboard_template.html")])
+    assert rc == 0
+    assert (out / "data" / "units.csv").read_text().startswith("date,scraped_at,plan,slug,unit,")
+    assert '"latest":null' in (out / "index.html").read_text()

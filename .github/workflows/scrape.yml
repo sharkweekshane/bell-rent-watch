@@ -8,7 +8,7 @@ on:
     - cron: "23 13 * * *"
   workflow_dispatch: {}        # "Run workflow" button in the Actions tab
   push:
-    branches: [main]           # redeploy the dashboard on every code push (no re-scrape needed, but harmless)
+    branches: [main]           # code pushes redeploy the dashboard from the committed data (no re-scrape)
 
 permissions:
   contents: write              # commit the day's CSVs back to the repo
@@ -48,9 +48,11 @@ jobs:
         run: python -m pytest -q
 
       - name: Scrape today's feed
+        if: github.event_name != 'push'
         run: python scrape.py
 
       - name: Commit the data
+        if: github.event_name != 'push'
         run: |
           git config user.name "rent-watch-bot"
           git config user.email "rent-watch-bot@users.noreply.github.com"
@@ -58,13 +60,19 @@ jobs:
           if git diff --cached --quiet; then
             echo "No data changes to commit"
           else
-            git commit -m "data: $(date -u +%Y-%m-%d)"
-            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git commit -m "data: $(TZ=America/New_York date +%Y-%m-%d)"
+            # If another run pushed the same date meanwhile, this run's (newer) rows win.
+            git pull --rebase -X theirs origin "${GITHUB_REF_NAME}"
             git push
           fi
 
       - name: Build the dashboard
         run: python build_site.py
+
+      - name: Enable Pages (no-op once it is on)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3

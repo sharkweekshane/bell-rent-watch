@@ -160,10 +160,10 @@ def test_upsert_csv_replaces_same_day_rows(tmp_path):
     p1, _ = scrape.build_rows(plans, units, "2026-09-12", "t1")
     p2, _ = scrape.build_rows(plans, units, "2026-09-13", "t2")
     path = tmp_path / "prices.csv"
-    assert scrape.upsert_csv(path, p1, ("date", "slug")) == 21
-    assert scrape.upsert_csv(path, p2, ("date", "slug")) == 42
+    assert scrape.upsert_csv(path, p1, scrape.PlanRow, {"2026-09-12"}) == 21
+    assert scrape.upsert_csv(path, p2, scrape.PlanRow, {"2026-09-13"}) == 42
     p2b, _ = scrape.build_rows(plans, units[:10], "2026-09-13", "t3")   # re-run same day, fewer units
-    assert scrape.upsert_csv(path, p2b, ("date", "slug")) == 42
+    assert scrape.upsert_csv(path, p2b, scrape.PlanRow, {"2026-09-13"}) == 42
     text = path.read_text()
     assert text.count("t3") == 21 and "t2" not in text and text.count("t1") == 21
     assert text.splitlines()[0].startswith("date,scraped_at,plan,slug,beds,baths,sqft,bldg,listed,n_units,price_min,price_max,price_text,earliest_available,url")
@@ -175,7 +175,7 @@ def test_upsert_csv_keeps_unknown_columns(tmp_path):
     path.write_text("date,slug,extra\n2026-01-01,a,keepme\n")
     plans = scrape.parse_catalog(PAGE)[:1]
     rows, _ = scrape.build_rows(plans, [], "2026-01-02", "t")
-    scrape.upsert_csv(path, rows, ("date", "slug"))
+    scrape.upsert_csv(path, rows, scrape.PlanRow, {"2026-01-02"})
     lines = path.read_text().splitlines()
     assert "extra" in lines[0] and "keepme" in lines[1]
 
@@ -216,3 +216,51 @@ def test_main_dry_run_writes_nothing(tmp_path, capsys):
     assert rc == 0 and not list(tmp_path.iterdir())
     out = json.loads(capsys.readouterr().out)
     assert len(out["plans"]) == 21 and len(out["units"]) == 30
+
+
+# ---- review follow-ups ----------------------------------------------------------
+def test_same_day_rerun_drops_units_that_left_the_feed(tmp_path):
+    """Replacement is by date: a re-run with fewer units must not keep the stale ones."""
+    plans = scrape.parse_catalog(PAGE)
+    units = scrape.parse_feed(FEED)
+    _, u1 = scrape.build_rows(plans, units, "2026-09-13", "t1")
+    _, u2 = scrape.build_rows(plans, [u for u in units if u.plan != "Denver 2"], "2026-09-13", "t2")
+    path = tmp_path / "units.csv"
+    assert scrape.upsert_csv(path, u1, scrape.UnitRow, {"2026-09-13"}) == 30
+    assert scrape.upsert_csv(path, u2, scrape.UnitRow, {"2026-09-13"}) == 27
+    assert "denver-2" not in path.read_text()
+    # an empty day really clears the date and still writes the header
+    assert scrape.upsert_csv(path, [], scrape.UnitRow, {"2026-09-13"}) == 0
+    assert path.read_text().startswith("date,scraped_at,plan,slug,unit,")
+    # other dates are untouched
+    _, u3 = scrape.build_rows(plans, units[:5], "2026-09-12", "t3")
+    scrape.upsert_csv(path, u3, scrape.UnitRow, {"2026-09-12"})
+    scrape.upsert_csv(path, u2, scrape.UnitRow, {"2026-09-13"})
+    text = path.read_text()
+    assert text.count("2026-09-12,") == 5 and text.count("2026-09-13,") == 27
+
+
+def test_slug_is_stable_when_the_page_reslugs_a_card():
+    plans = scrape.parse_catalog(PAGE.replace('data-formattedid="denver-2"', 'data-formattedid="denver-two-studio"'))
+    assert next(p for p in plans if p.feedmap == "Denver 2").slug == "denver-2"
+
+
+def test_load_catalog_tolerates_garbage(tmp_path):
+    (tmp_path / "a.json").write_text('{"not": "a list"}')
+    (tmp_path / "b.json").write_text('[1, "x", {"slug": "s", "name": "S"}]')
+    (tmp_path / "c.json").write_text('not json')
+    assert scrape.load_catalog(tmp_path / "a.json") == []
+    assert [p.slug for p in scrape.load_catalog(tmp_path / "b.json")] == ["s"]
+    assert scrape.load_catalog(tmp_path / "c.json") == []
+
+
+def test_bad_date_is_rejected(tmp_path):
+    with pytest.raises(SystemExit):
+        scrape.main(["--feed-file", str(FIX / "feed_2026-09-13.json"), "--date", "yesterday", "--data-dir", str(tmp_path)])
+    assert not list(tmp_path.iterdir())
+
+
+def test_zero_units_does_not_touch_the_catalog_cache(tmp_path):
+    empty = tmp_path / "empty.json"; empty.write_text('{"floorplans": {}}')
+    assert scrape.main(["--feed-file", str(empty), "--page-file", str(FIX / "floor-plans_2026-09-13.html"), "--date", "2026-09-13", "--data-dir", str(tmp_path / "d")]) == 2
+    assert not (tmp_path / "d").exists()

@@ -18,7 +18,7 @@ What the page shows is exactly what we record:
 Outputs (re-running on the same date replaces that date's rows):
   data/prices.csv        one row per floor plan per day (all plans, listed or not)
   data/units.csv         one row per available unit per day
-  data/raw/<date>.json   the feed exactly as fetched, so anything can be re-derived
+  data/raw/<date>.json   the feed as fetched (under a `feed` key, with date/scraped_at/feed_url)
   data/plans.json        the plan catalog parsed from the page (fallback if it changes)
 
 Usage:
@@ -272,7 +272,8 @@ def parse_catalog(page_html: str) -> list[Plan]:
         fpid = html_lib.unescape(attrs.get("fpid", "")).strip()
         if not fpid:
             continue  # the "Online Leasing" box and the no-results template
-        slug = attrs.get("formattedid") or slugify(fpid)
+        feedmap = html_lib.unescape(attrs.get("feedmap") or fpid).strip()
+        slug = slugify(feedmap or fpid)        # keyed on the FEED's plan name: stable even if the page re-slugs a card
         if slug in seen:
             continue
         seen.add(slug)
@@ -290,8 +291,7 @@ def parse_catalog(page_html: str) -> list[Plan]:
         plans.append(Plan(
             slug=slug, name=html_lib.unescape(head.group(1)).strip() if head and head.group(1).strip() else fpid,
             beds=beds, baths=baths, sqft=sqft, bldg=attrs.get("bldg", ""),
-            feedmap=html_lib.unescape(attrs.get("feedmap") or fpid).strip(),
-            url=href.group(1) if href else "", image=img.group(1) if img else "",
+            feedmap=feedmap, url=href.group(1) if href else "", image=img.group(1) if img else "",
         ))
     return plans
 
@@ -309,8 +309,10 @@ def catalog_from_units(units: list[Unit]) -> list[Plan]:
 def load_catalog(path: Path) -> list[Plan]:
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
-        return [Plan(**{f.name: p.get(f.name, "") for f in fields(Plan)}) for p in raw]
-    except (OSError, ValueError, TypeError):
+        if not isinstance(raw, list):
+            return []
+        return [Plan(**{f.name: p.get(f.name, "") for f in fields(Plan)}) for p in raw if isinstance(p, dict)]
+    except (OSError, ValueError, TypeError, AttributeError):
         return []
 
 
@@ -388,21 +390,23 @@ def _fmt(v) -> str:
     return str(v)
 
 
-def upsert_csv(path: Path, rows: list, key_fields: tuple[str, ...]) -> int:
-    """Merge dataclass `rows` into the CSV at `path`, replacing rows with the same key. Returns total rows."""
-    if not rows:
-        return 0
+def upsert_csv(path: Path, rows: list, row_type, dates: set[str]) -> int:
+    """Replace every row dated in `dates` with `rows`, keeping all other dates. Returns total rows.
+
+    Replacement is by date, not by row key, so a same-day re-run drops units that have left
+    the feed (and an --allow-empty run really clears the day). Writes the header even when
+    `rows` is empty. Columns an older/newer schema wrote are preserved.
+    """
     new = [{k: _fmt(v) for k, v in asdict(r).items()} for r in rows]
-    fieldnames = [f.name for f in fields(rows[0])]
+    fieldnames = [f.name for f in fields(row_type)]
     existing: list[dict] = []
     if path.exists():
         with path.open(newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             existing = list(reader)
-            if reader.fieldnames:  # keep columns an older/newer schema wrote
+            if reader.fieldnames:
                 fieldnames = list(dict.fromkeys([*reader.fieldnames, *fieldnames]))
-    keys = {tuple(r[k] for k in key_fields) for r in new}
-    kept = [r for r in existing if tuple(r.get(k, "") for k in key_fields) not in keys]
+    kept = [r for r in existing if r.get("date", "") not in dates]
     merged = kept + new
     merged.sort(key=lambda r: (r.get("date", ""), r.get("beds", "") or "9", r.get("sqft", "").zfill(6), r.get("slug", ""), r.get("unit", "")))
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -457,7 +461,10 @@ def main(argv=None) -> int:
                         format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 
     now_utc = datetime.now(timezone.utc)
-    today = args.date or now_utc.astimezone(LOCAL_TZ).date().isoformat()
+    try:
+        today = date.fromisoformat(args.date).isoformat() if args.date else now_utc.astimezone(LOCAL_TZ).date().isoformat()
+    except ValueError:
+        ap.error(f"--date must be YYYY-MM-DD, got {args.date!r}")
     scraped_at = now_utc.isoformat(timespec="seconds")
     data_dir: Path = args.data_dir
 
@@ -488,10 +495,8 @@ def main(argv=None) -> int:
     except Exception as e:  # the page is optional; the feed is not
         log.warning("Could not load the floor-plans page: %s -- using cached catalog", e)
     cache = data_dir / "plans.json"
-    if catalog:
-        if not args.dry_run:
-            save_catalog(cache, catalog)
-    else:
+    fresh_catalog = bool(catalog)
+    if not catalog:
         catalog = load_catalog(cache)
         if catalog:
             log.info("Using cached catalog of %d plans from %s", len(catalog), cache)
@@ -513,10 +518,12 @@ def main(argv=None) -> int:
         print(json.dumps({"plans": [asdict(p) for p in plan_rows], "units": [asdict(u) for u in unit_rows]}, indent=1))
         return 0
 
-    n = upsert_csv(data_dir / "prices.csv", plan_rows, ("date", "slug"))
+    n = upsert_csv(data_dir / "prices.csv", plan_rows, PlanRow, {today})
     log.info("Wrote %s (%d rows total)", data_dir / "prices.csv", n)
-    n = upsert_csv(data_dir / "units.csv", unit_rows, ("date", "slug", "unit"))
-    log.info("Wrote %s (%d rows total)", data_dir / "units.csv", n)
+    n = upsert_csv(data_dir / "units.csv", unit_rows, UnitRow, {today})
+    log.info("Wrote %s (%d rows total, %d for %s)", data_dir / "units.csv", n, len(unit_rows), today)
+    if fresh_catalog:
+        save_catalog(cache, catalog)
     raw_path = data_dir / "raw" / f"{today}.json"
     raw_path.parent.mkdir(parents=True, exist_ok=True)
     raw_path.write_text(json.dumps({"date": today, "scraped_at": scraped_at, "feed_url": FEED_URL,

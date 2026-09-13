@@ -3,7 +3,7 @@
 A daily record of the floor-plan rents at [bellwestford.com/floor-plans](https://www.bellwestford.com/floor-plans/), and a live dashboard of how they move. No servers: a GitHub Actions cron fetches the community's availability feed every morning, commits the day's CSVs back to this repo, and rebuilds the dashboard on GitHub Pages.
 
 ```
-GitHub Actions (cron, 9:23am ET)
+GitHub Actions (cron, 13:23 UTC = 9:23am EDT / 8:23am EST)
   └─ scrape.py ── GET ──▶ RentCafe availability feed (JSON, one record per available unit)
         │                  + the floor-plans page, for the list of all 21 plans
         ▼
@@ -28,10 +28,9 @@ The dashboard's headline number per plan is `price_min` — the lowest advertise
 
 ## Setup (once)
 
-1. Push this folder to a GitHub repo (public, so Pages is free).
-2. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-3. **Actions → “Scrape rents & deploy dashboard” → Run workflow.** The log should say `Feed: 30 available units across 15 plans`, then `21 plans, 15 listed, 30 units`, then a green deploy.
-4. The dashboard is at `https://<you>.github.io/<repo>/`. It updates itself every morning.
+1. Push this folder to a GitHub repo (public, so Pages is free). The push itself triggers a deploy-only run: the workflow turns on GitHub Pages for the repo (`actions/configure-pages` with `enablement: true`) and publishes the dashboard from whatever is in `data/`.
+2. **Actions → “Scrape rents & deploy dashboard” → Run workflow** to take the first snapshot. The log should say `Feed: 30 available units across 15 plans`, then `21 plans, 15 listed, 30 units`, then a green deploy.
+3. The dashboard is at `https://<you>.github.io/<repo>/`. It updates itself every morning. (Pushes to `main` only rebuild and redeploy the page; they don't re-scrape.)
 
 Each run is ~1 minute of Actions time. The workflow needs no secrets.
 
@@ -46,17 +45,17 @@ open site/index.html                         # the page works from a file:// URL
 .venv/bin/python -m pytest                   # tests, no network
 ```
 
-For a preview with history before the real one accumulates, `python tests/synthetic.py /tmp/demo 45` writes a 45-day synthetic dataset; build it with `python build_site.py --data-dir /tmp/demo --out /tmp/demo-site`.
+For a preview with history before the real one accumulates, `.venv/bin/python tests/synthetic.py /tmp/demo 45` writes a 45-day synthetic dataset; build it with `.venv/bin/python build_site.py --data-dir /tmp/demo --out /tmp/demo-site`.
 
 ## Data
 
-`data/prices.csv` — one row per floor plan per day (all 21 plans, listed or not). Re-running on the same date replaces that date's rows.
+`data/prices.csv` — one row per floor plan per day (all 21 plans, listed or not). Re-running on the same date replaces every row for that date in both CSVs (so a unit that left the feed between two same-day runs is dropped, not kept).
 
 | column | meaning |
 |---|---|
 | `date` | snapshot date in America/New_York |
 | `scraped_at` | UTC timestamp of the fetch |
-| `plan`, `slug`, `url` | floor plan identity, from the page |
+| `plan`, `slug`, `url` | floor plan identity; `slug` is derived from the feed's plan name (`Denver 2` → `denver-2`), so it stays stable even if the page re-slugs a card |
 | `beds`, `baths`, `sqft`, `bldg` | from the plan card (`beds = 0` is a studio; `bldg` is the site's Building 1 / 2 grouping) |
 | `listed` | 1 if the feed had at least one unit for the plan |
 | `n_units` | number of available units |
@@ -66,7 +65,7 @@ For a preview with history before the real one accumulates, `python tests/synthe
 
 `data/units.csv` — one row per available unit per day: `unit` (e.g. `5120`), `apartment_id`, `floorplan_id`, `beds`, `baths`, `sqft`, `floor` (parsed from the amenities), `rent_min`, `rent_max`, `deposit`, `available_date`, `made_ready_date`, `status` (`Vacant Unrented Ready`, `Notice Unrented`, …), `amenities` (`; `-separated), `specials`, `apply_url`.
 
-`data/raw/<date>.json` — the feed exactly as fetched, so any new field can be back-filled later. `data/plans.json` — the last good plan catalog parsed from the page, used if the page can't be read.
+`data/raw/<date>.json` — the feed as fetched, under a `feed` key, wrapped with `date`, `scraped_at`, `feed_url` and the response's `Last-Modified`; any new field can be back-filled from it later. `data/plans.json` — the last good plan catalog parsed from the page, used if the page can't be read.
 
 ## When it breaks
 
@@ -75,6 +74,7 @@ For a preview with history before the real one accumulates, `python tests/synthe
 - **`Only N plan cards parsed from the page`** — the page markup changed; the run continues with the cached `data/plans.json`, so nothing is lost. Fix `parse_catalog` when convenient.
 - **HTTP 403 / 404 on the feed** — the property changed vendors or the CDN path. Load the floor-plans page, view source, and search for `js_mits_feed_source` to find the new URL.
 - **Dashboard shows a yellow “last successful check was N days ago” banner** — the workflow is failing or GitHub paused the cron (it does that on inactive repos; the Actions tab shows a re-enable button).
-- **Runs show `cancelled` in a row** — a stuck run is holding the `pages` concurrency group. Cancel it from the Actions tab; the next run recovers everything.
+- **Runs show `cancelled` in a row** — each run is being cancelled by the next one before it finishes (the `pages` concurrency group keeps only the newest). Open the most recent cancelled run and see which step it stalled on — usually the deploy step waiting on the `github-pages` environment. Fix that and the next run recovers everything; nothing is lost because every run is idempotent.
+- **Push rejected in the “Commit the data” step** — two runs pushed the same date at once; the workflow rebases with this run's rows winning. If it still fails, just re-run the workflow.
 
 Be a good neighbour: it's two small GET requests a day.

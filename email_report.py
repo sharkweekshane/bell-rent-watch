@@ -187,7 +187,7 @@ def main(argv=None) -> int:
     ap.add_argument("--no-send", action="store_true", help="build the report but don't email it")
     ap.add_argument("--data-dir", type=Path, default=ROOT / "data")
     ap.add_argument("--out", type=Path, default=ROOT / "site" / "report.html")
-    ap.add_argument("--beds", type=int, default=int(os.environ.get("REPORT_BEDS", "2")))
+    ap.add_argument("--beds", type=int, default=int(os.environ.get("REPORT_BEDS") or "2"))
     args = ap.parse_args(argv)
 
     payload = build_site.build_payload(build_site.read_csv(args.data_dir / "prices.csv"), build_site.read_csv(args.data_dir / "units.csv"))

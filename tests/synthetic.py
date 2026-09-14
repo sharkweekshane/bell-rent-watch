@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import random
 import sys
+import zlib
 from dataclasses import replace
 from datetime import date, timedelta
 from pathlib import Path
@@ -36,7 +37,7 @@ def make_history(n_days: int = 45, end: date = date(2026, 9, 13), seed: int = 7)
         day = start + timedelta(days=i)
         units = []
         for u in base_units:
-            appear_day = hash(u.unit) % 12 if u.unit not in ("5120", "3413") else 0
+            appear_day = zlib.crc32(u.unit.encode()) % 12 if u.unit not in ("5120", "3413") else 0   # stable across processes
             if i < appear_day:
                 continue          # not listed yet
             if rng.random() < 0.12:

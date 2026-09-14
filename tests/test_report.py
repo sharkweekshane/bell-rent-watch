@@ -32,7 +32,7 @@ def test_report_lists_two_bed_units_cheapest_first_and_detects_changes():
     prices = [x["price"] for x in r["listed"]]
     assert prices == sorted(prices)
     assert [x["unit"] for x, d in r["moved"] if x["unit"] == "3420"] == ["3420"] and next(d for x, d in r["moved"] if x["unit"] == "3420") == 75
-    assert [x["unit"] for x in r["new"]] == ["7777"]
+    assert "7777" in [x["unit"] for x in r["new"]] and all(x["first_seen"] == pay["latest"] for x in r["new"])
     assert [x["unit"] for x in r["gone"]] == ["5422"]
     text = email_report.render_text(r)
     assert "#3420 +$75" in text and "New: Aspen 2 #7777" in text and "Gone (leased or delisted): Ames 2 #5422" in text

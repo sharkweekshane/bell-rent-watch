@@ -209,3 +209,24 @@ date,scraped_at,plan,slug,beds,baths,sqft,bldg,listed,n_units,price_min,price_ma
 2026-09-22,2026-09-23T01:23:53+00:00,Breckenridge 1,breckenridge-1,3,2,1472,1,1,2,4255,9486,"$4,255 - $9,486",2026-09-18,https://www.bellwestford.com/floorplans-m5-pt/breckenridge-1/
 2026-09-22,2026-09-23T01:23:53+00:00,Breckenridge 2,breckenridge-2,3,2,1503,2,1,1,4503,9491,"$4,503 - $9,491",2025-08-15,https://www.bellwestford.com/floorplans-m5-pt/breckenridge-2/
 2026-09-22,2026-09-23T01:23:53+00:00,Townhome,townhome,3,2,1932,2,1,3,4825,10164,"$4,825 - $10,164",2026-08-11,https://www.bellwestford.com/floorplans-m5-pt/townhome/
+2026-09-23,2026-09-23T17:48:39+00:00,Denver 1,denver-1,0,1,532,1,1,1,2375,3842,"$2,375 - $3,842",2026-10-25,https://www.bellwestford.com/floorplans-m5-pt/denver-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Denver 2,denver-2,0,1,535,2,1,2,2340,4477,"$2,340 - $4,477",2026-06-11,https://www.bellwestford.com/floorplans-m5-pt/denver-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Eaton 2,eaton-2,1,1,683,2,0,0,,,call for pricing,,https://www.bellwestford.com/floorplans-m5-pt/eaton-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Eaton 1,eaton-1,1,1,687,1,0,0,,,call for pricing,,https://www.bellwestford.com/floorplans-m5-pt/eaton-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Edgewater 1,edgewater-1,1,1,725,1,0,0,,,call for pricing,,https://www.bellwestford.com/floorplans-m5-pt/edgewater-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Edgewater 2,edgewater-2,1,1,725,2,0,0,,,call for pricing,,https://www.bellwestford.com/floorplans-m5-pt/edgewater-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Evergreen 1,evergreen-1,1,1,789,1,1,3,2485,4437,"$2,485 - $4,437",2026-09-22,https://www.bellwestford.com/floorplans-m5-pt/evergreen-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Evergreen 2,evergreen-2,1,1,789,2,0,0,,,call for pricing,,https://www.bellwestford.com/floorplans-m5-pt/evergreen-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Evans 1,evans-1,1,1,852,1,1,1,2513,4469,"$2,513 - $4,469",2026-07-16,https://www.bellwestford.com/floorplans-m5-pt/evans-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Evans 2,evans-2,1,1,874,2,1,1,2520,4477,"$2,520 - $4,477",2026-07-02,https://www.bellwestford.com/floorplans-m5-pt/evans-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Erie 1,erie-1,1,1,907,1,1,2,2669,4646,"$2,669 - $4,646",2026-08-28,https://www.bellwestford.com/floorplans-m5-pt/erie-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Erie 2,erie-2,1,1,914,2,1,1,2665,4641,"$2,665 - $4,641",2026-07-04,https://www.bellwestford.com/floorplans-m5-pt/erie-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Ames 1,ames-1,2,2,1188,1,1,4,3001,6008,"$3,001 - $6,008",2026-07-02,https://www.bellwestford.com/floorplans-m5-pt/ames-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Ames 2,ames-2,2,2,1227,2,1,2,3015,5467,"$3,015 - $5,467",2026-08-07,https://www.bellwestford.com/floorplans-m5-pt/ames-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Aspen 1,aspen-1,2,2,1234,1,1,3,3060,5746,"$3,060 - $5,746",2026-09-28,https://www.bellwestford.com/floorplans-m5-pt/aspen-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Aspen 2,aspen-2,2,2,1237,2,1,2,3105,5566,"$3,105 - $5,566",2026-06-22,https://www.bellwestford.com/floorplans-m5-pt/aspen-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Avon 2,avon-2,2,2,1292,2,1,1,3085,5712,"$3,085 - $5,712",2026-09-29,https://www.bellwestford.com/floorplans-m5-pt/avon-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Avon 1,avon-1,2,2,1304,1,1,1,3399,5890,"$3,399 - $5,890",2026-08-28,https://www.bellwestford.com/floorplans-m5-pt/avon-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Breckenridge 1,breckenridge-1,3,2,1472,1,1,2,4255,9486,"$4,255 - $9,486",2026-09-18,https://www.bellwestford.com/floorplans-m5-pt/breckenridge-1/
+2026-09-23,2026-09-23T17:48:39+00:00,Breckenridge 2,breckenridge-2,3,2,1503,2,1,1,4503,9491,"$4,503 - $9,491",2025-08-15,https://www.bellwestford.com/floorplans-m5-pt/breckenridge-2/
+2026-09-23,2026-09-23T17:48:39+00:00,Townhome,townhome,3,2,1932,2,1,3,4825,10164,"$4,825 - $10,164",2026-08-11,https://www.bellwestford.com/floorplans-m5-pt/townhome/
